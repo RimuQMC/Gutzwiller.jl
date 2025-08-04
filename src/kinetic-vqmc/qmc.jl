@@ -12,12 +12,13 @@ The algorithm for sampling is taken from [1].
 [1]: https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780
 """
 function kinetic_sample!(prob_buffer, hamiltonian, ansatz, params, addr1)
-    offdiags = offdiagonals(hamiltonian, addr1)
+    column = hamiltonian * addr1
+    offdiags = offdiagonals(column)
 
     resize!(prob_buffer, length(offdiags))
 
     val1, grad1 = val_and_grad(ansatz, addr1, params)
-    diag = diagonal_element(hamiltonian, addr1)
+    diag = diagonal_element(column)
     local_energy_num = diag * val1
 
     residence_time_denom = 0.0
