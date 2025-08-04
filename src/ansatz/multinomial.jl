@@ -40,7 +40,7 @@ function multinomial_normalization(addr::CompositeFS)
     return prod(multinomial_normalization, addr.components)
 end
 
-function multinomial_weight(addr::BoseFS, occ=OccupiedModeMap(addr))
+function multinomial_weight(addr::BoseFS, occ=occupied_modes(addr))
     return prod(idx -> 1/gamma(idx.occnum + 1), occ)
 end
 multinomial_weight(addr::FermiFS) = 1.0
