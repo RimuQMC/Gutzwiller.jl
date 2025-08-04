@@ -103,7 +103,8 @@ function val_and_grad(le::LocalEnergyEvaluator{N,T}, params::SVector{N,T}) where
         ham = le.hamiltonian
 
         k_val, k_grad = val_and_grad(le.ansatz, k, params)
-        diag = diagonal_element(ham, k)
+        column = ham * k
+        diag = diagonal_element(column)
 
         num = abs2(k_val) * diag
         num_grad = 2 * k_grad * k_val * diag
@@ -111,7 +112,7 @@ function val_and_grad(le::LocalEnergyEvaluator{N,T}, params::SVector{N,T}) where
         den = abs2(k_val)
         den_grad = 2 * k_val * k_grad
 
-        for (l, melem) in offdiagonals(ham, k)
+        for (l, melem) in offdiagonals(column)
             l_val, l_grad = val_and_grad(le.ansatz, l, params)
             num += l_val * melem * k_val
             num_grad += melem * (l_val * k_grad + l_grad * k_val)
@@ -136,12 +137,13 @@ function (le::LocalEnergyEvaluator{N,T})(params) where {N,T}
         ham = le.hamiltonian
 
         k_val = le.ansatz(k, params)
-        diag = diagonal_element(ham, k)
+        column = ham * k
+        diag = diagonal_element(column)
 
         num = abs2(k_val) * diag
         den = abs2(k_val)
 
-        for (l, melem) in offdiagonals(ham, k)
+        for (l, melem) in offdiagonals(column)
             l_val = le.ansatz(l, params)
             num += l_val * melem * k_val
         end
