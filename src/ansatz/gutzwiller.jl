@@ -24,7 +24,7 @@ Rimu.build_basis(gv::GutzwillerAnsatz) = build_basis(gv.hamiltonian)
 
 function val_and_grad(gv::GutzwillerAnsatz, addr, params)
     g = only(params)
-    diag = diagonal_element(gv.hamiltonian, addr)
+    diag = diagonal_element(gv.hamiltonian * addr)
 
     val = exp(-g * diag)
     der = -diag * val
@@ -32,5 +32,5 @@ function val_and_grad(gv::GutzwillerAnsatz, addr, params)
     return val, SVector(der)
 end
 function (gv::GutzwillerAnsatz)(addr, params)
-    return exp(-only(params) * diagonal_element(gv.hamiltonian, addr))
+    return exp(-only(params) * diagonal_element(gv.hamiltonian * addr))
 end
