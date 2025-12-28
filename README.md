@@ -190,8 +190,8 @@ opt_lbgfs.minimizer, opt_lbgfs.minimum
 
 When the Hamiltonian is too large to store its full basis in memory, we can use
 variational QMC to sample addresses from the Hilbert space and evaluate their energy
-at the same time. An important paramter we have tune is the number `steps`. More steps
-will give us a better approximation of the energy, but take longer to evaluate.
+at the same time. An important parameter we have to tune is the number `steps`. More 
+steps will give us a better approximation of the energy, but take longer to evaluate.
 Not taking enough samples can also result in producing a biased result.
 Consider the following.
 
