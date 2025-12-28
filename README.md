@@ -10,7 +10,7 @@ _importance sampling and variational Monte Carlo for
 Gutzwiller.jl is not yet registered. To install it, run
 
 ```julia
-import Pkg; Pkg.add("https://github.com/RimuQMC/Gutzwiller.jl")
+import Pkg; Pkg.add(url="https://github.com/RimuQMC/Gutzwiller.jl")
 ```
 
 ## Usage guide
