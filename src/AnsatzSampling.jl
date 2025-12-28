@@ -56,9 +56,9 @@ end
 ###
 const AnsatzTransformUndoer{O} = TransformUndoer{<:Any,<:AnsatzSampling,O}
 
-function TransformUndoer(k::AnsatzSampling, op::AbstractOperator)
+function Rimu.Hamiltonians.TransformUndoer(k::AnsatzSampling, op::AbstractOperator)
     T = promote_type(eltype(k) * eltype(op))
-    return Rimu.Hamiltonians.TransformUndoer{T,typeof(k),typeof(op)}(k, op)
+    return TransformUndoer{T,typeof(k),typeof(op)}(k, op)
 end
 
 # methods for general operator `f^{-1} A f^{-1}`
