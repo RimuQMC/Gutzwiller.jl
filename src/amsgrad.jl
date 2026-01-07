@@ -82,7 +82,7 @@ Returns [`GradientDescentResult`](@ref).
 
 ## Arguments
 
-- `φ`, `ψ`: functions for updatin the first and second moment. These are set by the caller
+- `φ`, `ψ`: functions for updating the first and second moment. These are set by the caller
   ([`gradient_descent`] and [`amsgrad`]).
 - `f`: the function to be optimized. Must be callable with parameters of the same shape as
   `p_init`.
@@ -94,7 +94,7 @@ Returns [`GradientDescentResult`](@ref).
 - `maxiter`: maximum iterations performed before stopping.
 - `verbose`: set to `false` to disable printing.
 - `α`: the learning rate. Larger values converge faster, but are less stable.
-- `grad_tol`, `param_tol`, `val_tol`: stop if gradient, paramters, or objective function
+- `grad_tol`, `param_tol`, `val_tol`: stop if gradient, parameters, or objective function
   value change less than this amount in a step.
 - `first_moment_init`: initial value for the first moment. Defaults to the gradient of `f`
   at `p_init`.

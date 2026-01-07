@@ -10,7 +10,7 @@ _importance sampling and variational Monte Carlo for
 Gutzwiller.jl is not yet registered. To install it, run
 
 ```julia
-import Pkg; Pkg.add("https://github.com/RimuQMC/Gutzwiller.jl")
+import Pkg; Pkg.add(url="https://github.com/RimuQMC/Gutzwiller.jl")
 ```
 
 ## Usage guide
@@ -190,8 +190,8 @@ opt_lbgfs.minimizer, opt_lbgfs.minimum
 
 When the Hamiltonian is too large to store its full basis in memory, we can use
 variational QMC to sample addresses from the Hilbert space and evaluate their energy
-at the same time. An important paramter we have tune is the number `steps`. More steps
-will give us a better approximation of the energy, but take longer to evaluate.
+at the same time. An important parameter we have to tune is the number `steps`. More 
+steps will give us a better approximation of the energy, but take longer to evaluate.
 Not taking enough samples can also result in producing a biased result.
 Consider the following.
 
