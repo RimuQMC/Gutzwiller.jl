@@ -39,6 +39,9 @@ function kinetic_sample!(prob_buffer, hamiltonian, ansatz, params, addr1)
     gradient = grad1 / val1
 
     chosen = pick_random_from_cumsum(prob_buffer)
+    if iszero(chosen)
+        error("Non-finite probabilities encountered at $params")
+    end
     new_addr, _ = offdiags[chosen]
 
     return new_addr, residence_time, local_energy, gradient
@@ -51,7 +54,13 @@ Pick a random index from `cumsum`, which should contain a cumulative sum (see `B
 of values proportional to the probabilities with which the index should be picked.
 """
 @inline function pick_random_from_cumsum(cumsum)
+    if any(!isfinite, cumsum)
+        return 0
+    end
     chosen = rand() * last(cumsum)
+    if !isfinite(chosen)
+        return 0
+    end
     i = 1
     @inbounds while true
         if chosen < cumsum[i]
