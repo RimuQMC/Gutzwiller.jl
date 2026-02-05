@@ -1,5 +1,32 @@
 using Rimu.Hamiltonians: ModifiedHamiltonian, TransformUndoer, parent_operator
 
+"""
+struct AnsatzSampling(hamiltonian, ansatz, params)
+
+Importance-sampled Hamiltonian, where the importance sampling is controlled by `ansatz` and
+`params`.
+
+```jldoctest
+julia> H = HubbardRealSpace(BoseFS(1,1), u=6);
+
+julia> ansatz = GutzwillerAnsatz(H);
+
+julia> G = AnsatzSampling(H, ansatz, 0.6);
+
+julia> Matrix(H)
+3×3 Matrix{Float64}:
+  0.0      -2.82843  -2.82843
+ -2.82843   6.0       0.0
+ -2.82843   0.0       6.0
+
+julia> Matrix(G)
+3×3 Matrix{Float64}:
+  0.0        -103.515  -103.515
+ -0.0772832     6.0       0.0
+ -0.0772832     0.0       6.0
+
+```
+"""
 struct AnsatzSampling{Adj,T,N,A<:AbstractAnsatz{<:Any,T,N},H} <: ModifiedHamiltonian{T}
     hamiltonian::H
     ansatz::A
@@ -15,7 +42,6 @@ end
 function AnsatzSampling(
     h, ansatz::AbstractAnsatz{<:Any,<:Any,N}, params::Vararg{Number,N}
 ) where {N}
-
     return AnsatzSampling(h, ansatz, params)
 end
 
@@ -54,7 +80,7 @@ end
 ###
 ### TransformUndoer
 ###
-const AnsatzTransformUndoer{O} = TransformUndoer{<:Any,<:AnsatzSampling,O}
+const AnsatzTransformUndoer{O} = Rimu.Hamiltonians.TransformUndoer{<:Any,<:AnsatzSampling,O}
 
 function Rimu.Hamiltonians.TransformUndoer(k::AnsatzSampling, op::AbstractOperator)
     T = promote_type(eltype(k) * eltype(op))

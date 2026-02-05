@@ -27,7 +27,7 @@ export JastrowAnsatz, RelativeJastrowAnsatz
 include("ansatz/jastrow.jl")
 export DensityProfileAnsatz
 include("ansatz/densityprofile.jl")
-export ExtendedAnsatz
+export CombinationAnsatz
 include("ansatz/combination.jl")
 
 export LocalEnergyEvaluator

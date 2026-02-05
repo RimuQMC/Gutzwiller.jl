@@ -17,13 +17,14 @@ mutable struct KineticVQMCWalkerState{A,T<:Real,H,N,V<:AbstractAnsatz{A,T,N}}
     local_energies::Vector{T}
     grad_ratios::Vector{SVector{N,T}}
     prob_buffer::Vector{T}
+    offdiag_buffer::Vector{Pair{A,T}}
 end
 function KineticVQMCWalkerState(
     hamiltonian::H, ansatz::V, params
 ) where {H,A,T,N,V<:AbstractAnsatz{A,T,N}}
     return KineticVQMCWalkerState{A,T,H,N,V}(
         hamiltonian, ansatz, SVector{N,T}(params),
-        starting_address(hamiltonian), A[], T[], T[], T[], T[],
+        starting_address(hamiltonian), A[], T[], T[], T[], T[], Pair{A,T}[],
     )
 end
 
