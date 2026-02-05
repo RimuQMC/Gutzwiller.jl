@@ -1,5 +1,5 @@
 """
-    kinetic_sample!(prob_buffer, hamiltonian, ansatz, curr_addr)
+    kinetic_sample!(offdiag_buffer, prob_buffer, hamiltonian, ansatz, curr_addr)
 
 Use the `hamiltonian` and `curr_addr` to sample a new address from `ansatz`, while also
 computing the local energy contribution of `curr_addr`. Return a tuple of the new address,
@@ -11,40 +11,48 @@ The algorithm for sampling is taken from [1].
 
 [1]: https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780
 """
-function kinetic_sample!(prob_buffer, hamiltonian, ansatz, params, addr1)
-    column = hamiltonian * addr1
-    offdiags = offdiagonals(column)
+function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, addr_n)
+    column = hamiltonian * addr_n
+    resize!(offdiags, num_offdiagonals(column))
+    resize!(prob_buffer, num_offdiagonals(column)+1)
 
-    resize!(prob_buffer, length(offdiags))
-
-    val1, grad1 = val_and_grad(ansatz, addr1, params)
-    diag = diagonal_element(column)
-    local_energy_num = diag * val1
-
-    residence_time_denom = 0.0
-
-    for (i, (addr2, melem)) in enumerate(offdiags)
-        val2 = ansatz(addr2, params)
-        residence_time_denom += abs(val2)
-        local_energy_num += melem * val2
-
-        prob_buffer[i] = residence_time_denom
+    for (i, (k, v)) in enumerate(offdiagonals(column))
+        offdiags[i] = k => v
     end
 
-    residence_time = abs(val1) / residence_time_denom
+    val_n, grad_n = val_and_grad(ansatz, addr_n, params)
+    diag = diagonal_element(column)
+    local_energy_num = diag * val_n
+
+    residence_time_denom = val_n
+    prob_buffer[1] = val_n
+
+    for (i, (addr_m, offdiag)) in enumerate(offdiags)
+        val_m = ansatz(addr_m, params)
+        residence_time_denom += abs(val_m)
+        local_energy_num += offdiag * val_m
+
+        prob_buffer[i+1] = residence_time_denom
+    end
+
+    residence_time = abs(val_n) / residence_time_denom
     if !isfinite(residence_time)
         error("Infinite residence time at $params")
     end
-    local_energy = local_energy_num / val1
-    gradient = grad1 / val1
+    local_energy = local_energy_num / val_n
+    gradient = grad_n / val_n
 
-    chosen = pick_random_from_cumsum(prob_buffer)
-    if iszero(chosen)
+    chosen = pick_random_from_cumsum(prob_buffer) - 1
+
+    if chosen < 0
         error("Non-finite probabilities encountered at $params")
+    elseif chosen == 0
+        addr_m = addr_n
+    else
+        addr_m, _ = offdiags[chosen]
     end
-    new_addr, _ = offdiags[chosen]
 
-    return new_addr, residence_time, local_energy, gradient
+    return addr_m, residence_time, local_energy, gradient
 end
 
 """
@@ -82,7 +90,9 @@ Returns its input.
 """
 function kinetic_vqmc!(st::KineticVQMCWalkerState; steps=length(st))
     curr_addr = st.curr_address
-    @unpack (residence_times, local_energies, grad_ratios, addresses, prob_buffer) = st
+    @unpack (
+        residence_times, local_energies, grad_ratios, addresses, prob_buffer, offdiag_buffer
+    ) = st
 
     first_step = length(residence_times) + 1
     last_step = length(residence_times) + Int(steps)
@@ -94,7 +104,7 @@ function kinetic_vqmc!(st::KineticVQMCWalkerState; steps=length(st))
 
     for k in first_step:last_step
         next_addr, residence_time, local_energy, grad = kinetic_sample!(
-            prob_buffer, st.hamiltonian, st.ansatz, st.params, curr_addr
+            offdiag_buffer, prob_buffer, st.hamiltonian, st.ansatz, st.params, curr_addr
         )
         addresses[k] = curr_addr
         residence_times[k] = residence_time
