@@ -1,6 +1,7 @@
 using Test
 using Gutzwiller
 using Optim
+using NLSolversBase
 using Rimu
 
 @testset "Gradient descent vs amsgrad" begin
@@ -9,7 +10,7 @@ using Rimu
         ansatz = GutzwillerAnsatz(H)
         le = LocalEnergyEvaluator(H, ansatz)
 
-        opt_res = optimize(Optim.only_fg!(le), [0.5])
+        opt_res = optimize(NLSolversBase.only_fg!(le), [0.5])
         gd_res = gradient_descent(le, [0.5])
         ams_res = amsgrad(le, [0.5]; maxiter=1000)
 
@@ -26,7 +27,7 @@ using Rimu
         le = LocalEnergyEvaluator(H, ansatz)
         qmc = KineticVQMC(H, ansatz)
 
-        opt_res = optimize(Optim.only_fg!(le), [0.5, 0.5])
+        opt_res = optimize(NLSolversBase.only_fg!(le), [0.5, 0.5])
         gd_res = gradient_descent(qmc, [0.5, 0.5]; maxiter=100)
         ams_res = amsgrad(qmc, [0.5, 0.5]; maxiter=100)
 

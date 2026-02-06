@@ -2,6 +2,7 @@
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 KrylovKit = "0b1a1467-8014-51b9-945f-bf0ae24f4b77"
+NLSolversBase = "d41bc354-129a-5804-8e4c-c37616107c6c"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Rimu = "c53c40cc-bd84-11e9-2cf4-a9fde2b9386e"
