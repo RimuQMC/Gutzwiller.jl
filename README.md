@@ -145,11 +145,11 @@ opt_nelder = optimize(le, [1.0])
 
 ````
 
-To take advantage of the gradients, wrap the evaluator in `Optim.only_fg!`. This will
-usually reduce the number of steps needed to reach the minimum.
+To take advantage of the gradients, wrap the evaluator in `NLSolversBase.only_fg!`. This
+will usually reduce the number of steps needed to reach the minimum.
 
 ````julia
-opt_lbgfs = optimize(Optim.only_fg!(le), [1.0])
+opt_lbgfs = optimize(NLSolversBase.only_fg!(le), [1.0])
 ````
 
 ````
@@ -190,7 +190,7 @@ opt_lbgfs.minimizer, opt_lbgfs.minimum
 
 When the Hamiltonian is too large to store its full basis in memory, we can use
 variational QMC to sample addresses from the Hilbert space and evaluate their energy
-at the same time. An important parameter we have to tune is the number `steps`. More 
+at the same time. An important parameter we have to tune is the number `steps`. More
 steps will give us a better approximation of the energy, but take longer to evaluate.
 Not taking enough samples can also result in producing a biased result.
 Consider the following.
@@ -492,4 +492,3 @@ dramatic for larger systems and beter choices of anstaze.
 ---
 
 *This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
-
