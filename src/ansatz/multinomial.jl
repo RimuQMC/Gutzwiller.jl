@@ -30,6 +30,9 @@ function MultinomialAnsatz(H::AbstractHamiltonian; normalize=false)
     return MultinomialAnsatz{K}(normalization)
 end
 
+function multinomial_normalization(addr::BoseFS{1})
+    return 1.0
+end
 function multinomial_normalization(addr::BoseFS)
     return gamma(num_particles(addr) + 1) / float(num_modes(addr))^num_particles(addr)
 end
