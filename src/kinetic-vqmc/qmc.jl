@@ -14,7 +14,7 @@ The algorithm for sampling is taken from [1].
 function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, addr_n)
     column = hamiltonian * addr_n
     resize!(offdiags, num_offdiagonals(column))
-    resize!(prob_buffer, num_offdiagonals(column)+1)
+    resize!(prob_buffer, num_offdiagonals(column))
 
     for (i, (k, v)) in enumerate(offdiagonals(column))
         offdiags[i] = k => v
@@ -24,15 +24,14 @@ function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, add
     diag = diagonal_element(column)
     local_energy_num = diag * val_n
 
-    residence_time_denom = val_n
-    prob_buffer[1] = val_n
+    residence_time_denom = 0.0
 
     for (i, (addr_m, offdiag)) in enumerate(offdiags)
         val_m = ansatz(addr_m, params)
         residence_time_denom += abs(val_m)
         local_energy_num += offdiag * val_m
 
-        prob_buffer[i+1] = residence_time_denom
+        prob_buffer[i] = residence_time_denom
     end
 
     residence_time = abs(val_n) / residence_time_denom
@@ -42,7 +41,7 @@ function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, add
     local_energy = local_energy_num / val_n
     gradient = grad_n / val_n
 
-    chosen = pick_random_from_cumsum(prob_buffer) - 1
+    chosen = pick_random_from_cumsum(prob_buffer)
 
     if chosen < 0
         error("Non-finite probabilities encountered at $params")
