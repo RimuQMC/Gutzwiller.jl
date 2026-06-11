@@ -8,7 +8,7 @@ Ansatz for a coherent state wavefunction.
 where ``\\alpha_{k}`` are variational parameters.
 """
 
-struct CoherentAnsatz{A,T,M,H} <: AbstractAnsatz{A,Float64,N}
+struct CoherentAnsatz{A,T,M,H} <: AbstractAnsatz{A,Float64,M}
     hamiltonian::H
     fact_table::Vector{Float64}
 end
@@ -21,7 +21,7 @@ function CoherentAnsatz(hamiltonian)
 
     mode_cutoff = hamiltonian.mode_cutoff === nothing ? 255 : hamiltonian.mode_cutoff
     fact_table = [sqrt(factorial(big(n))) for n in 0:mode_cutoff]
-    return CoherentAnsatz{addr_type,Float64,M}(hamiltonian,fact_table)
+    return CoherentAnsatz{addr_type,Float64,M,typeof(hamiltonian)}(hamiltonian,fact_table)
 end
 
 Rimu.build_basis(ca::CoherentAnsatz) = build_basis(ca.hamiltonian)
@@ -62,11 +62,6 @@ function val_and_grad(ca::CoherentAnsatz, addr, params)
         return 0.0, SVector{length(occ),Float64}(zeros(length(occ)))
     end
 
-    val = 1.0
-    if !isnothing(ca.hamiltonian.mode_cutoff) &&
-       any(x -> x > ca.hamiltonian.mode_cutoff, occ)
-        return 0.0
-    end
     
     logval = 0.0
     @inbounds for (i, ni) in enumerate(occ)
