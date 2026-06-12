@@ -1,11 +1,12 @@
 
+
 """
-CoherentAnsatz
+    CoherentAnsatz
 Ansatz for a coherent state wavefunction.
 ```math
-\\Psi{n_k} = \\prod_{k} e^{\\frac{-\\abs{\\alpha_{k}}^2} }{2} \\frac{\\alpha_{k}^{n_k}}{\\sqrt{n_{k}!}}
+Ψ(n_k) = ∏_k e^{\\frac{-|α_k^2|}{2} \\frac{α_k^{n_k}}{√{n_k!}}
 ```
-where ``\\alpha_{k}`` are variational parameters.
+where α_k are variational parameters.
 """
 
 struct CoherentAnsatz{A,T,M,H} <: AbstractAnsatz{A,Float64,M}
@@ -13,20 +14,19 @@ struct CoherentAnsatz{A,T,M,H} <: AbstractAnsatz{A,Float64,M}
     fact_table::Vector{Float64}
 end
 
-
-
 function CoherentAnsatz(hamiltonian)
     addr_type = typeof(starting_address(hamiltonian))
     M = num_modes(starting_address(hamiltonian))
 
-    mode_cutoff = hamiltonian.mode_cutoff === nothing ? 255 : hamiltonian.mode_cutoff
-    fact_table = [sqrt(factorial(big(n))) for n in 0:mode_cutoff]
+    mode_cutoff = num_particles(starting_address(hamiltonian))
+    if ismissing(mode_cutoff)            
+        mode_cutoff = isnothing(hamiltonian.mode_cutoff) ? 255 : hamiltonian.mode_cutoff
+    end
+    fact_table = [log(sqrt(factorial(big(n)))) for n in 0:mode_cutoff]
     return CoherentAnsatz{addr_type,Float64,M,typeof(hamiltonian)}(hamiltonian,fact_table)
 end
 
 Rimu.build_basis(ca::CoherentAnsatz) = build_basis(ca.hamiltonian)
-
-
 
 function (ca::CoherentAnsatz)(addr, params)
     occ = onr(addr)
@@ -39,48 +39,23 @@ function (ca::CoherentAnsatz)(addr, params)
     logval = 0.0
     @inbounds for (i, ni) in enumerate(occ)
         if ni != 0
-            ai = exp(params[i])
-            logval += ni*log(ai) - log(ca.fact_table[ni+1])
+            logval += ni*log(params[i]) - ca.fact_table[ni+1]
         end
     end
     normterm = 0.0
     @inbounds for i in eachindex(params)
-        ai = exp(params[i])
-        normterm += ai^2
+        normterm += params[i]^2
     end
-    logval -= 0.5  * normterm 
+    logval -= 0.5 * normterm 
     val = exp(logval)
 
     return val
 end
 
 function val_and_grad(ca::CoherentAnsatz, addr, params)
-    occ = onr(addr)
-
-    if !isnothing(ca.hamiltonian.mode_cutoff) &&
-       any(x -> x > ca.hamiltonian.mode_cutoff, occ)
-        return 0.0, SVector{length(occ),Float64}(zeros(length(occ)))
-    end
-
-    
-    logval = 0.0
-    @inbounds for (i, ni) in enumerate(occ)
-        if ni != 0
-            ai = exp(params[i])
-            logval += ni*log(ai) - log(ca.fact_table[ni+1])
-        end
-    end
-    normterm = 0.0
-    @inbounds for i in eachindex(params)
-        ai = exp(params[i])
-        normterm += ai^2
-    end
-    logval -= 0.5  * normterm 
-    val = exp(logval)
-
+    val = ca(addr, params)
     grad = SVector{length(occ),Float64}(
-        (occ[i] - exp(2 * params[i])) * val for i in eachindex(occ)
+        (occ[i]/params[i] -  params[i]) * val for i in eachindex(occ)
     )
-
     return val, grad
 end
