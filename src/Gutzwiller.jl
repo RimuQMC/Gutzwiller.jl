@@ -29,6 +29,8 @@ export DensityProfileAnsatz
 include("ansatz/densityprofile.jl")
 export CombinationAnsatz
 include("ansatz/combination.jl")
+export CoherentAnsatz
+include("ansatz/coherentstate.jl")
 
 export LocalEnergyEvaluator
 include("localenergy.jl")
