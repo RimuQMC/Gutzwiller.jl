@@ -56,6 +56,7 @@ end
         end
         if starting_address(H) isa BoseFS
             check_ansatz(H, MultinomialAnsatz(H), rand(1))
+            check_ansatz(H, GrossPitaevskiiAnsatz(H), rand(M))
             check_ansatz(H, GutzwillerAnsatz(H) + MultinomialAnsatz(H), rand(3))
         end
         if starting_address(H) isa SingleComponentFockAddress
@@ -77,6 +78,17 @@ end
     @test repr(gpe) == "GrossPitaevskiiAnsatz{Float64, modes=2}($addr)"
     @test iszero(gpe(addr, SVector(0.0, 1.0)))
     @test gpe(addr, SVector(0.5, 0.5)) ≈ 0.25
+
+    for (a, p, expected_grad) in (
+        (addr, SVector(0.0, 1.0), SVector(0.0, 0.0)),
+        (BoseFS((1, 1)), SVector(0.0, 1.0), SVector(sqrt(2.0), 0.0)),
+        (BoseFS((1, 1)), SVector(0.0, 0.0), SVector(0.0, 0.0)),
+        (addr, SVector(0.5, 0.5), SVector(1.0, 0.0)),
+    )
+        val, grad = val_and_grad(gpe, a, p)
+        @test val ≈ gpe(a, p)
+        @test grad ≈ expected_grad
+    end
 end
 
 @testset "MultinomialAnsatz" begin
