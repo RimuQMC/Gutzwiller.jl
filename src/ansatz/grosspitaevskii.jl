@@ -1,6 +1,6 @@
 """
     GrossPitaevskiiAnsatz(h::AbstractHamiltonian)
-    GrossPitaevskiiAnsatz(address::BoseFS, valtype::Type = Float64) <: AbstractAnsatz
+    GrossPitaevskiiAnsatz(address::BoseFS; valtype::Type = Float64) <: AbstractAnsatz
 
 Ansatz representing a Gross-Pitaevskii product state of ``N`` bosons in ``M`` modes,
 with single-particle orbital parameter vector ``𝐜 = (c_1, …, c_M)``:
@@ -15,47 +15,39 @@ Projected onto a Fock basis state ``|n_1, …, n_M⟩``, the amplitude is:
 ⟨n₁, …, n_M | Ψ_{\\mathrm{GP}}⟩ = \\sqrt{\\frac{N!}{\\prod_{m=1}^M nₘ!}} \\prod_{m=1}^M cₘ^{nₘ}
 ```
 
-# How to use
-```julia
-using Gutzwiller
-using Rimu
-using StaticArrays: SVector
+# Example
+```jldoctest
+julia> H = HubbardReal1D(BoseFS((2, 0)))
+julia> gpe = GrossPitaevskiiAnsatz(H)
+julia> gpe_from_address = GrossPitaevskiiAnsatz(starting_address(H))
+julia> complex_gpe = GrossPitaevskiiAnsatz(starting_address(H); valtype=ComplexF64)
 
-H = HubbardReal1D(BoseFS((2, 0)))
-gpe = GrossPitaevskiiAnsatz(H)
-gpe_from_address = GrossPitaevskiiAnsatz(starting_address(H))
-complex_gpe = GrossPitaevskiiAnsatz(starting_address(H), ComplexF64)
+julia> params = SVector(inv(sqrt(2.0)), inv(sqrt(2.0)))
+julia> addr = BoseFS((1, 1))
+julia> amplitude = gpe(addr, params)
+julia> amplitude, gradient = val_and_grad(gpe, addr, params)
 
-params = SVector(inv(sqrt(2.0)), inv(sqrt(2.0)))
-addr = BoseFS((1, 1))
-amplitude = gpe(addr, params)
-amplitude, gradient = val_and_grad(gpe, addr, params)
+julia> basis = build_basis(gpe)
+julia> state = PDVec(gpe, params; basis=basis)
 
-basis = build_basis(gpe)
-state = PDVec(gpe, params; basis=basis)
-
-evaluator = LocalEnergyEvaluator(H, gpe)
-energy = evaluator(params)
-energy, energy_gradient = val_and_grad(evaluator, params)
+julia> evaluator = LocalEnergyEvaluator(H, gpe)
+julia> energy = evaluator(params)
+julia> energy, energy_gradient = val_and_grad(evaluator, params);
 ```
 """
 struct GrossPitaevskiiAnsatz{A,T<:Number,M} <: AbstractAnsatz{A,T,M}
     address::A
 end
 
-function GrossPitaevskiiAnsatz(addr::BoseFS, valtype::Type)
+function GrossPitaevskiiAnsatz(addr::BoseFS; valtype::Type=Float64)
     return GrossPitaevskiiAnsatz{typeof(addr),valtype,num_modes(addr)}(addr)
 end
 
-GrossPitaevskiiAnsatz(h::AbstractHamiltonian) = GrossPitaevskiiAnsatz(starting_address(h), eltype(h))
-GrossPitaevskiiAnsatz(addr::BoseFS) = GrossPitaevskiiAnsatz(addr, Float64)
+GrossPitaevskiiAnsatz(h::AbstractHamiltonian) =
+    GrossPitaevskiiAnsatz(starting_address(h); valtype=eltype(h))
 
 Rimu.starting_address(gpe::GrossPitaevskiiAnsatz) = gpe.address
 Rimu.build_basis(gpe::GrossPitaevskiiAnsatz) = build_basis(gpe.address)
-
-function Base.show(io::IO, gpe::GrossPitaevskiiAnsatz{A,T,M}) where {A,T,M}
-    print(io, "GrossPitaevskiiAnsatz{$T, modes=$M}($(gpe.address))")
-end
 
 # evaluate GP ansatz amplitude
 function (gpe::GrossPitaevskiiAnsatz{A,T,M})(addr::BoseFS{<:Any,M}, params) where {A,T,M}

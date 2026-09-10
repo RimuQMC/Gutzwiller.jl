@@ -72,10 +72,9 @@ end
     addr = starting_address(H)
     gpe = GrossPitaevskiiAnsatz(addr)
     @test GrossPitaevskiiAnsatz(H) isa GrossPitaevskiiAnsatz{<:Any,Float64,2}
-    @test GrossPitaevskiiAnsatz(addr, ComplexF64) isa GrossPitaevskiiAnsatz{<:Any,ComplexF64,2}
+    @test GrossPitaevskiiAnsatz(addr; valtype=ComplexF64) isa GrossPitaevskiiAnsatz{<:Any,ComplexF64,2}
     @test starting_address(gpe) == addr
     @test build_basis(gpe) == build_basis(addr)
-    @test repr(gpe) == "GrossPitaevskiiAnsatz{Float64, modes=2}($addr)"
     @test iszero(gpe(addr, SVector(0.0, 1.0)))
     @test gpe(addr, SVector(0.5, 0.5)) ≈ 0.25
 
