@@ -44,7 +44,7 @@ function Base.show(io::IO, gpa::GrossPitaevskiiAnsatz{<:Any,T}) where {T}
 end
 
 # evaluate GP ansatz amplitude
-function (gpa::GrossPitaevskiiAnsatz{A,T,M})(addr::BoseFS{<:Any,M}, params) where {A,T,M}
+function (gpa::GrossPitaevskiiAnsatz{<:Any,T,M})(addr::BoseFS{<:Any,M}, params) where {T,M}
     orb_prod = one(promote_type(T, eltype(params)))
     for (k, m, _) in occupied_modes(addr)
         c_m = params[m]
@@ -56,8 +56,8 @@ function (gpa::GrossPitaevskiiAnsatz{A,T,M})(addr::BoseFS{<:Any,M}, params) wher
 end
 
 function val_and_grad(
-    gpa::GrossPitaevskiiAnsatz{A,T,M}, addr::BoseFS{<:Any,M}, params
-) where {A,T,M}
+    gpa::GrossPitaevskiiAnsatz{<:Any,T,M}, addr::BoseFS{<:Any,M}, params
+) where {T,M}
     # <addr|Ψ_GP>
     val = gpa(addr, params)
     # prefactor
