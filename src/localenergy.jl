@@ -9,8 +9,6 @@ Alternatively, `val_and_grad` can be used to compute the value and gradient (wit
 the parameters).
 
 ```jldoctest
-julia> using Rimu, Gutzwiller
-
 julia> H = HubbardReal1D(BoseFS((1,1,1,1,1)));
 
 julia> le = LocalEnergyEvaluator(H, GutzwillerAnsatz(H));
@@ -29,8 +27,6 @@ julia> val_and_grad(le, 0.5)
 You can use the gradient provided by this struct by wrapping it in `Optim.only_fg!`.
 
 ```jldoctest
-julia> using Rimu, Gutzwiller
-
 julia> H = HubbardReal1D(BoseFS((1,1,1,1,1)));
 
 julia> le = LocalEnergyEvaluator(H, GutzwillerAnsatz(H));
@@ -53,7 +49,7 @@ julia> optimize(le, [0.5])
     f(x) calls:    21
 
 
-julia> optimize(Optim.only_fg!(le), [0.5])
+julia> optimize(NLSolversBase.only_fg!(le), [0.5])
  * Status: success
 
  * Candidate solution
@@ -63,17 +59,18 @@ julia> optimize(Optim.only_fg!(le), [0.5])
     Algorithm:     L-BFGS
 
  * Convergence measures
-    |x - x'|               = 1.18e-05 ≰ 0.0e+00
-    |x - x'|/|x'|          = 2.51e-05 ≰ 0.0e+00
-    |f(x) - f(x')|         = 6.72e-10 ≰ 0.0e+00
-    |f(x) - f(x')|/|f(x')| = 8.17e-11 ≰ 0.0e+00
-    |g(x)|                 = 4.54e-11 ≤ 1.0e-08
+    |x - x'|               = 1.19e-08 ≰ 0.0e+00
+    |x - x'|/|x'|          = 2.53e-08 ≰ 0.0e+00
+    |f(x) - f(x')|         = 0.00e+00 ≤ 0.0e+00
+    |f(x) - f(x')|/|f(x')| = 0.00e+00 ≤ 0.0e+00
+    |g(x)|                 = 2.30e-12 ≤ 1.0e-08
 
  * Work counters
     Seconds run:   0  (vs limit Inf)
-    Iterations:    3
+    Iterations:    5
     f(x) calls:    7
     ∇f(x) calls:   7
+    ∇f(x)ᵀv calls: 0
 
 
 ```

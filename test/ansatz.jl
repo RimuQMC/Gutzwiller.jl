@@ -70,13 +70,14 @@ end
 @testset "GrossPitaevskiiAnsatz" begin
     H = HubbardReal1D(BoseFS((2, 0)))
     addr = starting_address(H)
-    gpe = GrossPitaevskiiAnsatz(addr)
+    gpa = GrossPitaevskiiAnsatz(addr)
     @test GrossPitaevskiiAnsatz(H) isa GrossPitaevskiiAnsatz{<:Any,Float64,2}
     @test GrossPitaevskiiAnsatz(addr; valtype=ComplexF64) isa GrossPitaevskiiAnsatz{<:Any,ComplexF64,2}
-    @test starting_address(gpe) == addr
-    @test build_basis(gpe) == build_basis(addr)
-    @test iszero(gpe(addr, SVector(0.0, 1.0)))
-    @test gpe(addr, SVector(0.5, 0.5)) ≈ 0.25
+    @test starting_address(gpa) == addr
+    @test build_basis(gpa) == build_basis(addr)
+    @test repr(gpa) == "GrossPitaevskiiAnsatz($(gpa.address))"
+    @test iszero(gpa(addr, SVector(0.0, 1.0)))
+    @test gpa(addr, SVector(0.5, 0.5)) ≈ 0.25
 
     for (a, p, expected_grad) in (
         (addr, SVector(0.0, 1.0), SVector(0.0, 0.0)),
@@ -84,8 +85,8 @@ end
         (BoseFS((1, 1)), SVector(0.0, 0.0), SVector(0.0, 0.0)),
         (addr, SVector(0.5, 0.5), SVector(1.0, 0.0)),
     )
-        val, grad = val_and_grad(gpe, a, p)
-        @test val ≈ gpe(a, p)
+        val, grad = val_and_grad(gpa, a, p)
+        @test val ≈ gpa(a, p)
         @test grad ≈ expected_grad
     end
 end

@@ -35,11 +35,15 @@ end
 GrossPitaevskiiAnsatz(h::AbstractHamiltonian) =
     GrossPitaevskiiAnsatz(starting_address(h); valtype=eltype(h))
 
-Rimu.starting_address(gpe::GrossPitaevskiiAnsatz) = gpe.address
-Rimu.build_basis(gpe::GrossPitaevskiiAnsatz) = build_basis(gpe.address)
+Rimu.starting_address(gpa::GrossPitaevskiiAnsatz) = gpa.address
+Rimu.build_basis(gpa::GrossPitaevskiiAnsatz) = build_basis(gpa.address)
+
+function Base.show(io::IO, gpa::GrossPitaevskiiAnsatz{A,V,N}) where {A,V,N}
+    print(io, "GrossPitaevskiiAnsatz($(gpa.address))")
+end
 
 # evaluate GP ansatz amplitude
-function (gpe::GrossPitaevskiiAnsatz{A,T,M})(addr::BoseFS{<:Any,M}, params) where {A,T,M}
+function (gpa::GrossPitaevskiiAnsatz{A,T,M})(addr::BoseFS{<:Any,M}, params) where {A,T,M}
     orb_prod = one(promote_type(T, eltype(params)))
     for (k, m, _) in occupied_modes(addr)
         c_m = params[m]
@@ -51,10 +55,10 @@ function (gpe::GrossPitaevskiiAnsatz{A,T,M})(addr::BoseFS{<:Any,M}, params) wher
 end
 
 function val_and_grad(
-    gpe::GrossPitaevskiiAnsatz{A,T,M}, addr::BoseFS{<:Any,M}, params
+    gpa::GrossPitaevskiiAnsatz{A,T,M}, addr::BoseFS{<:Any,M}, params
 ) where {A,T,M}
     # <addr|Ψ_GP>
-    val = gpe(addr, params)
+    val = gpa(addr, params)
     # prefactor
     coefficient = sqrt(gamma(num_particles(addr) + 1) * multinomial_weight(addr))
     grad = zeros(SVector{M,typeof(val)})
