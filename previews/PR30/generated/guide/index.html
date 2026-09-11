@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Usage Guide · Gutzwiller.jl</title><meta name="title" content="Usage Guide · Gutzwiller.jl"/><meta property="og:title" content="Usage Guide · Gutzwiller.jl"/><meta property="twitter:title" content="Usage Guide · Gutzwiller.jl"/><meta name="description" content="Documentation for Gutzwiller.jl."/><meta property="og:description" content="Documentation for Gutzwiller.jl."/><meta property="twitter:description" content="Documentation for Gutzwiller.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Gutzwiller.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li class="is-active"><a class="tocitem" href>Usage Guide</a><ul class="internal"><li><a class="tocitem" href="#Installation"><span>Installation</span></a></li><li><a class="tocitem" href="#Usage-guide"><span>Usage guide</span></a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Usage Guide</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Usage Guide</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/RimuQMC/Gutzwiller.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/RimuQMC/Gutzwiller.jl/blob/master/docs/src/generated/guide.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Gutzwiller"><a class="docs-heading-anchor" href="#Gutzwiller">Gutzwiller</a><a id="Gutzwiller-1"></a><a class="docs-heading-anchor-permalink" href="#Gutzwiller" title="Permalink"></a></h1><p><a href="https://coveralls.io/github/mtsch/Gutzwiller.jl?branch=master"><img src="https://coveralls.io/repos/github/mtsch/Gutzwiller.jl/badge.svg?branch=master" alt="Coverage Status"/></a></p><p><em>importance sampling and variational Monte Carlo for <a href="https://github.com/joachimbrand/Rimu.jl">Rimu.jl</a></em></p><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><p>Gutzwiller.jl is not yet registered. To install it, run</p><pre><code class="language-julia hljs">import Pkg; Pkg.add(&quot;https://github.com/mtsch/Gutzwiller.jl&quot;)</code></pre><h2 id="Usage-guide"><a class="docs-heading-anchor" href="#Usage-guide">Usage guide</a><a id="Usage-guide-1"></a><a class="docs-heading-anchor-permalink" href="#Usage-guide" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Rimu
+using Gutzwiller
+using CairoMakie
+using LaTeXStrings</code></pre><p>First, we set up a starting address and a Hamiltonian</p><pre><code class="language-julia hljs">addr = near_uniform(BoseFS{10,10})
+H = HubbardReal1D(addr; u=2.0)</code></pre><pre><code class="nohighlight hljs">HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0)</code></pre><p>In this example, we&#39;ll set up a Gutzwiller ansatz to importance-sample the Hamiltonian.</p><pre><code class="language-julia hljs">ansatz = GutzwillerAnsatz(H)</code></pre><pre><code class="nohighlight hljs">GutzwillerAnsatz{Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, Float64, Rimu.Hamiltonians.HubbardReal1D{Float64, Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, 2.0, 1.0}}(HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0))</code></pre><p>An ansatz is a struct that given a set of parameters and an address, produces the value it would have if it was a vector.</p><pre><code class="language-julia hljs">ansatz(addr, [1.0])</code></pre><pre><code class="nohighlight hljs">1.0</code></pre><p>In addition, the function <code>val_and_grad</code> can be used to compute both the value and its gradient with respect to the parameters.</p><pre><code class="language-julia hljs">val_and_grad(ansatz, addr, [1.0])</code></pre><pre><code class="nohighlight hljs">(1.0, [-0.0])</code></pre><h3 id="Deterministic-optimization"><a class="docs-heading-anchor" href="#Deterministic-optimization">Deterministic optimization</a><a id="Deterministic-optimization-1"></a><a class="docs-heading-anchor-permalink" href="#Deterministic-optimization" title="Permalink"></a></h3><p>For effective importance sampling, we want the ansatz to be as good of an approximation to the ground state of the Hamiltonian as possible. As the value of the Rayleigh quotient of a given ansatz is always larger than the Hamiltonian&#39;s ground state energy, we can use an optimization algorithm to find the paramters that minimize its energy.</p><p>When the basis of the Hamiltonian is small enough to fit into memory, it&#39;s best to use the <code>LocalEnergyEvaluator</code></p><pre><code class="language-julia hljs">le = LocalEnergyEvaluator(H, ansatz)</code></pre><pre><code class="nohighlight hljs">LocalEnergyEvaluator(HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0), GutzwillerAnsatz{Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, Float64, Rimu.Hamiltonians.HubbardReal1D{Float64, Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, 2.0, 1.0}}(HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0)))</code></pre><p>which can be used to evaulate the value of the Rayleigh quotient (or its gradient) for given parameters. In the case of the Gutzwiller ansatz, there is only one parameter.</p><pre><code class="language-julia hljs">le([1.0])</code></pre><pre><code class="nohighlight hljs">-7.825819465047338</code></pre><p>Like before, we can use <code>val_and_grad</code> to also evaluate its gradient.</p><pre><code class="language-julia hljs">val_and_grad(le, [1.0])</code></pre><pre><code class="nohighlight hljs">(-7.825819465047338, [10.61414777614323])</code></pre><p>Now, let&#39;s plot the energy landscape for this particular case</p><pre><code class="language-julia hljs">begin
+    fig = Figure()
+    ax = Axis(fig[1, 1]; xlabel=L&quot;p&quot;, ylabel=L&quot;E&quot;)
+    ps = range(0, 2; length=100)
+    Es = [le([p]) for p in ps]
+    lines!(ax, ps, Es)
+    fig
+end</code></pre><p><img src="../guide-21.png" alt/></p><p>To find the minimum, pass <code>le</code> to <code>optimize</code> from Optim.jl</p><pre><code class="language-julia hljs">using Optim, NLSolversBase
+
+opt_nelder = optimize(le, [1.0])</code></pre><pre><code class="nohighlight hljs"> * Status: success
+
+ * Candidate solution
+    Final objective value:     -1.300521e+01
+
+ * Found with
+    Algorithm:     Nelder-Mead
+
+ * Convergence measures
+    √(Σ(yᵢ-ȳ)²)/n ≤ 1.0e-08
+
+ * Work counters
+    Seconds run:   1  (vs limit Inf)
+    Iterations:    11
+    f(x) calls:    25
+</code></pre><p>To take advantage of the gradients, wrap the evaluator in <code>only_fg!</code>. This will usually reduce the number of steps needed to reach the minimum.</p><pre><code class="language-julia hljs">opt_lbgfs = optimize(only_fg!(le), [1.0])</code></pre><pre><code class="nohighlight hljs"> * Status: success
+
+ * Candidate solution
+    Final objective value:     -1.300521e+01
+
+ * Found with
+    Algorithm:     L-BFGS
+
+ * Convergence measures
+    |x - x&#39;|               = 1.01e-08 ≰ 0.0e+00
+    |x - x&#39;|/|x&#39;|          = 3.04e-08 ≰ 0.0e+00
+    |f(x) - f(x&#39;)|         = 1.46e-11 ≰ 0.0e+00
+    |f(x) - f(x&#39;)|/|f(x&#39;)| = 1.12e-12 ≰ 0.0e+00
+    |g(x)|                 = 1.96e-10 ≤ 1.0e-08
+
+ * Work counters
+    Seconds run:   2  (vs limit Inf)
+    Iterations:    8
+    f(x) calls:    14
+    ∇f(x) calls:   14
+    ∇f(x)ᵀv calls: 0
+</code></pre><p>We can inspect the parameters and the value at the minimum as</p><pre><code class="language-julia hljs">opt_lbgfs.minimizer, opt_lbgfs.minimum</code></pre><pre><code class="nohighlight hljs">([0.3331889106034745], -13.005208186389002)</code></pre><h3 id="Variational-quantum-Monte-Carlo"><a class="docs-heading-anchor" href="#Variational-quantum-Monte-Carlo">Variational quantum Monte Carlo</a><a id="Variational-quantum-Monte-Carlo-1"></a><a class="docs-heading-anchor-permalink" href="#Variational-quantum-Monte-Carlo" title="Permalink"></a></h3><p>When the Hamiltonian is too large to store its full basis in memory, we can use variational QMC to sample addresses from the Hilbert space and evaluate their energy at the same time. An important paramter we have tune is the number <code>steps</code>. More steps will give us a better approximation of the energy, but take longer to evaluate. Not taking enough samples can also result in producing a biased result. Consider the following.</p><pre><code class="language-julia hljs">p0 = [1.0]
+@time kinetic_vqmc(H, ansatz, p0; steps=1e2)</code></pre><pre><code class="nohighlight hljs">KineticVQMCResult
+  walkers:      1
+  samples:      100
+  local energy: -7.8815 ± 0.48742</code></pre><pre><code class="language-julia hljs">@time kinetic_vqmc(H, ansatz, p0; steps=1e5)</code></pre><pre><code class="nohighlight hljs">KineticVQMCResult
+  walkers:      1
+  samples:      100000
+  local energy: -7.8237 ± 0.016758</code></pre><pre><code class="language-julia hljs">@time kinetic_vqmc(H, ansatz, p0; steps=1e7)</code></pre><pre><code class="nohighlight hljs">KineticVQMCResult
+  walkers:      1
+  samples:      10000000
+  local energy: -7.8255 ± 0.0016949</code></pre><p>For this simple example, <code>1e2</code> steps gives an energy that is significantly higher, while <code>1e7</code> takes too long. <code>1e5</code> seems to work well enough. For more convenient evaluation, we wrap VQMC into a struct that behaves much like the <code>LocalEnergyEvaluator</code>.</p><pre><code class="language-julia hljs">qmc = KineticVQMC(H, ansatz; samples=1e4)</code></pre><pre><code class="nohighlight hljs">KineticVQMC(
+  HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0),
+  GutzwillerAnsatz{Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, Float64, Rimu.Hamiltonians.HubbardReal1D{Float64, Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, 2.0, 1.0}}(HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0));
+  steps=10000,
+  walkers=1,
+)</code></pre><pre><code class="language-julia hljs">qmc([1.0]), le([1.0])</code></pre><pre><code class="nohighlight hljs">(-7.789463409257618, -7.825819465047338)</code></pre><p>Because the output of this procedure is noisy, optimizing it with Optim.jl will not work. However, we can use a stochastic gradient descent (in this case <a href="https://paperswithcode.com/method/amsgrad">AMSGrad</a>).</p><pre><code class="language-julia hljs">grad_result = amsgrad(qmc, [1.0])</code></pre><pre><code class="nohighlight hljs">GradientDescentResult
+  iterations: 101
+  converged: false (iterations)
+  last value: -13.016314880057651 ± 0.05696570105247024
+  last params: [0.334893156430504]</code></pre><p>While <code>amsgrad</code> attempts to determine if the optimization converged, it will generally not detect convergence due to the noise in the QMC evaluation. The best way to determine convergence is to plot the results. <code>grad_result</code> can be converted to a <code>DataFrame</code>.</p><pre><code class="language-julia hljs">grad_df = DataFrame(grad_result)</code></pre><pre><code class="nohighlight hljs">101×11 DataFrame
+ Row │ α        β1       β2       iter   param       value      error      gradient      first_moment   second_moment  param_delta
+     │ Float64  Float64  Float64  Int64  SArray…     Float64    Float64    SArray…       SArray…        SArray…        SArray…
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │    0.01      0.1     0.01      1  [1.0]        -7.74399  0.0493659  [10.6364]     [10.7386]      [1.13134]      [-0.10096]
+   2 │    0.01      0.1     0.01      2  [0.89904]    -8.82724  0.0472762  [10.4278]     [10.7075]      [2.20741]      [-0.0720687]
+   3 │    0.01      0.1     0.01      3  [0.826971]   -9.71794  0.0504891  [10.1931]     [10.6561]      [3.22434]      [-0.059344]
+   4 │    0.01      0.1     0.01      4  [0.767627]  -10.1721   0.0455311  [9.31171]     [10.5216]      [4.05917]      [-0.0522233]
+   5 │    0.01      0.1     0.01      5  [0.715404]  -10.6856   0.0493103  [9.33474]     [10.4029]      [4.88996]      [-0.047044]
+   6 │    0.01      0.1     0.01      6  [0.66836]   -11.2085   0.0476423  [9.0233]      [10.265]       [5.65526]      [-0.043165]
+   7 │    0.01      0.1     0.01      7  [0.625195]  -11.5118   0.046624   [8.46531]     [10.085]       [6.31532]      [-0.0401309]
+   8 │    0.01      0.1     0.01      8  [0.585064]  -11.8711   0.0478569  [8.02242]     [9.87875]      [6.89576]      [-0.0376193]
+   9 │    0.01      0.1     0.01      9  [0.547444]  -12.0054   0.0448861  [6.47695]     [9.53857]      [7.24631]      [-0.0354344]
+  10 │    0.01      0.1     0.01     10  [0.51201]   -12.3461   0.0453387  [6.43476]     [9.22819]      [7.58791]      [-0.0335008]
+  11 │    0.01      0.1     0.01     11  [0.478509]  -12.5682   0.0448889  [5.40376]     [8.84575]      [7.80403]      [-0.0316647]
+  12 │    0.01      0.1     0.01     12  [0.446844]  -12.7278   0.049324   [4.702]       [8.43137]      [7.94708]      [-0.0299085]
+  13 │    0.01      0.1     0.01     13  [0.416936]  -12.8484   0.0441941  [3.7837]      [7.96661]      [8.01077]      [-0.0281473]
+  14 │    0.01      0.1     0.01     14  [0.388789]  -12.9719   0.0426768  [2.45489]     [7.41543]      [8.01077]      [-0.0261999]
+  15 │    0.01      0.1     0.01     15  [0.362589]  -12.9977   0.0575186  [1.47062]     [6.82095]      [8.01077]      [-0.0240995]
+  16 │    0.01      0.1     0.01     16  [0.338489]  -12.986    0.0488601  [0.160809]    [6.15494]      [8.01077]      [-0.0217464]
+  17 │    0.01      0.1     0.01     17  [0.316743]  -12.9577   0.0545703  [-0.847365]   [5.45471]      [8.01077]      [-0.0192723]
+  18 │    0.01      0.1     0.01     18  [0.297471]  -12.9759   0.0455488  [-2.18325]    [4.69091]      [8.01077]      [-0.0165737]
+  19 │    0.01      0.1     0.01     19  [0.280897]  -12.9139   0.0542643  [-3.22785]    [3.89904]      [8.03486]      [-0.0137552]
+  20 │    0.01      0.1     0.01     20  [0.267142]  -12.9184   0.0535406  [-4.12619]    [3.09651]      [8.12476]      [-0.0108634]
+  21 │    0.01      0.1     0.01     21  [0.256278]  -12.7275   0.0693666  [-6.12699]    [2.17416]      [8.41891]      [-0.00749314]
+  22 │    0.01      0.1     0.01     22  [0.248785]  -12.7103   0.0617323  [-6.11692]    [1.34505]      [8.70889]      [-0.00455783]
+  23 │    0.01      0.1     0.01     23  [0.244227]  -12.7791   0.0585454  [-6.1891]     [0.591639]     [9.00485]      [-0.0019716]
+  24 │    0.01      0.1     0.01     24  [0.242256]  -12.6978   0.0850846  [-7.79254]    [-0.246779]    [9.52204]      [0.000799729]
+  25 │    0.01      0.1     0.01     25  [0.243055]  -12.7278   0.0669949  [-6.91422]    [-0.913522]    [9.90488]      [0.00290265]
+  26 │    0.01      0.1     0.01     26  [0.245958]  -12.6654   0.0679816  [-6.62796]    [-1.48497]     [10.2451]      [0.00463936]
+  27 │    0.01      0.1     0.01     27  [0.250597]  -12.8657   0.0628267  [-6.23904]    [-1.96037]     [10.5319]      [0.00604066]
+  28 │    0.01      0.1     0.01     28  [0.256638]  -12.7333   0.0652605  [-5.60374]    [-2.32471]     [10.7406]      [0.00709339]
+  29 │    0.01      0.1     0.01     29  [0.263731]  -12.8497   0.0627524  [-4.87344]    [-2.57958]     [10.8707]      [0.00782384]
+  30 │    0.01      0.1     0.01     30  [0.271555]  -12.9504   0.0552896  [-4.19941]    [-2.74156]     [10.9384]      [0.00828938]
+  31 │    0.01      0.1     0.01     31  [0.279845]  -12.7707   0.0703578  [-4.19146]    [-2.88655]     [11.0047]      [0.00870144]
+  32 │    0.01      0.1     0.01     32  [0.288546]  -12.9039   0.061707   [-3.12226]    [-2.91012]     [11.0047]      [0.00877249]
+  33 │    0.01      0.1     0.01     33  [0.297319]  -12.9945   0.0535771  [-2.32116]    [-2.85123]     [11.0047]      [0.00859495]
+  34 │    0.01      0.1     0.01     34  [0.305913]  -12.9025   0.0678022  [-1.84015]    [-2.75012]     [11.0047]      [0.00829016]
+  35 │    0.01      0.1     0.01     35  [0.314204]  -12.9152   0.0602351  [-1.38812]    [-2.61392]     [11.0047]      [0.00787959]
+  36 │    0.01      0.1     0.01     36  [0.322083]  -13.0148   0.0550413  [-0.900079]   [-2.44254]     [11.0047]      [0.00736296]
+  37 │    0.01      0.1     0.01     37  [0.329446]  -12.9438   0.0559156  [-0.21485]    [-2.21977]     [11.0047]      [0.00669143]
+  38 │    0.01      0.1     0.01     38  [0.336138]  -13.0623   0.0468541  [0.0870072]   [-1.98909]     [11.0047]      [0.00599606]
+  39 │    0.01      0.1     0.01     39  [0.342134]  -13.0139   0.0524507  [0.699417]    [-1.72024]     [11.0047]      [0.00518562]
+  40 │    0.01      0.1     0.01     40  [0.347319]  -12.8624   0.0628282  [0.408814]    [-1.50733]     [11.0047]      [0.00454382]
+  41 │    0.01      0.1     0.01     41  [0.351863]  -12.9408   0.0537327  [1.03796]     [-1.2528]      [11.0047]      [0.00377655]
+  42 │    0.01      0.1     0.01     42  [0.35564]   -12.9798   0.0526428  [1.22954]     [-1.00457]     [11.0047]      [0.00302825]
+  43 │    0.01      0.1     0.01     43  [0.358668]  -13.0266   0.0435945  [1.39684]     [-0.764429]    [11.0047]      [0.00230435]
+  44 │    0.01      0.1     0.01     44  [0.360972]  -13.0072   0.0462445  [1.72288]     [-0.515698]    [11.0047]      [0.00155456]
+  45 │    0.01      0.1     0.01     45  [0.362527]  -12.9145   0.0511673  [1.21264]     [-0.342864]    [11.0047]      [0.00103355]
+  46 │    0.01      0.1     0.01     46  [0.36356]   -12.9881   0.0383196  [1.62645]     [-0.145933]    [11.0047]      [0.000439912]
+  47 │    0.01      0.1     0.01     47  [0.364]     -12.8997   0.0443298  [1.47053]     [0.0157131]    [11.0047]      [-4.73667e-5]
+  48 │    0.01      0.1     0.01     48  [0.363953]  -12.8233   0.0453955  [1.37205]     [0.151347]     [11.0047]      [-0.000456232]
+  49 │    0.01      0.1     0.01     49  [0.363497]  -12.9203   0.061284   [1.63938]     [0.300151]     [11.0047]      [-0.000904797]
+  50 │    0.01      0.1     0.01     50  [0.362592]  -12.956    0.0489332  [1.56894]     [0.427029]     [11.0047]      [-0.00128727]
+  51 │    0.01      0.1     0.01     51  [0.361305]  -12.9544   0.0531267  [1.19345]     [0.503672]     [11.0047]      [-0.0015183]
+  52 │    0.01      0.1     0.01     52  [0.359786]  -12.9169   0.0492973  [1.03443]     [0.556748]     [11.0047]      [-0.0016783]
+  53 │    0.01      0.1     0.01     53  [0.358108]  -13.0455   0.0506662  [1.52018]     [0.653091]     [11.0047]      [-0.00196872]
+  54 │    0.01      0.1     0.01     54  [0.356139]  -13.016    0.052315   [1.01114]     [0.688895]     [11.0047]      [-0.00207666]
+  55 │    0.01      0.1     0.01     55  [0.354063]  -12.9394   0.0458451  [0.71352]     [0.691358]     [11.0047]      [-0.00208408]
+  56 │    0.01      0.1     0.01     56  [0.351979]  -12.9788   0.0463889  [1.05425]     [0.727647]     [11.0047]      [-0.00219347]
+  57 │    0.01      0.1     0.01     57  [0.349785]  -12.9673   0.0487126  [0.500076]    [0.70489]      [11.0047]      [-0.00212487]
+  58 │    0.01      0.1     0.01     58  [0.34766]   -13.0531   0.0519945  [1.03185]     [0.737586]     [11.0047]      [-0.00222343]
+  59 │    0.01      0.1     0.01     59  [0.345437]  -13.0515   0.0441319  [0.928982]    [0.756726]     [11.0047]      [-0.00228113]
+  60 │    0.01      0.1     0.01     60  [0.343156]  -13.1256   0.0407733  [0.950823]    [0.776136]     [11.0047]      [-0.00233964]
+  61 │    0.01      0.1     0.01     61  [0.340816]  -13.0519   0.0443505  [0.66103]     [0.764625]     [11.0047]      [-0.00230494]
+  62 │    0.01      0.1     0.01     62  [0.338511]  -12.9939   0.0513365  [0.210493]    [0.709212]     [11.0047]      [-0.0021379]
+  63 │    0.01      0.1     0.01     63  [0.336373]  -12.9292   0.0533898  [-0.239575]   [0.614333]     [11.0047]      [-0.00185189]
+  64 │    0.01      0.1     0.01     64  [0.334521]  -12.959    0.0457874  [-0.347884]   [0.518111]     [11.0047]      [-0.00156183]
+  65 │    0.01      0.1     0.01     65  [0.332959]  -13.0482   0.050234   [0.209634]    [0.487264]     [11.0047]      [-0.00146884]
+  66 │    0.01      0.1     0.01     66  [0.331491]  -13.0066   0.0437036  [0.189749]    [0.457512]     [11.0047]      [-0.00137916]
+  67 │    0.01      0.1     0.01     67  [0.330111]  -13.0578   0.0525716  [-0.216751]   [0.390086]     [11.0047]      [-0.0011759]
+  68 │    0.01      0.1     0.01     68  [0.328936]  -12.9974   0.0506774  [-0.091005]   [0.341977]     [11.0047]      [-0.00103088]
+  69 │    0.01      0.1     0.01     69  [0.327905]  -12.9733   0.0473947  [0.0382431]   [0.311603]     [11.0047]      [-0.00093932]
+  70 │    0.01      0.1     0.01     70  [0.326965]  -12.9948   0.0517989  [-0.63687]    [0.216756]     [11.0047]      [-0.000653405]
+  71 │    0.01      0.1     0.01     71  [0.326312]  -12.9158   0.0565106  [-0.248049]   [0.170276]     [11.0047]      [-0.000513291]
+  72 │    0.01      0.1     0.01     72  [0.325799]  -13.1005   0.0490361  [-0.3607]     [0.117178]     [11.0047]      [-0.00035323]
+  73 │    0.01      0.1     0.01     73  [0.325445]  -13.1477   0.0419425  [-0.126003]   [0.0928599]    [11.0047]      [-0.000279924]
+  74 │    0.01      0.1     0.01     74  [0.325165]  -13.0031   0.0524793  [-0.538954]   [0.0296785]    [11.0047]      [-8.9465e-5]
+  75 │    0.01      0.1     0.01     75  [0.325076]  -13.0165   0.05492    [-0.587185]   [-0.0320078]   [11.0047]      [9.64868e-5]
+  76 │    0.01      0.1     0.01     76  [0.325173]  -13.0073   0.0498815  [-0.0572432]  [-0.0345314]   [11.0047]      [0.000104094]
+  77 │    0.01      0.1     0.01     77  [0.325277]  -13.1434   0.0408916  [0.0895986]   [-0.0221184]   [11.0047]      [6.66753e-5]
+  78 │    0.01      0.1     0.01     78  [0.325343]  -13.0563   0.0546735  [-0.873366]   [-0.107243]    [11.0047]      [0.000323281]
+  79 │    0.01      0.1     0.01     79  [0.325667]  -13.0235   0.0602307  [-0.427516]   [-0.13927]     [11.0047]      [0.000419827]
+  80 │    0.01      0.1     0.01     80  [0.326086]  -12.8942   0.0615624  [-1.06339]    [-0.231682]    [11.0047]      [0.0006984]
+  81 │    0.01      0.1     0.01     81  [0.326785]  -13.0666   0.0405563  [0.185876]    [-0.189926]    [11.0047]      [0.000572528]
+  82 │    0.01      0.1     0.01     82  [0.327357]  -12.9937   0.0497488  [-0.284032]   [-0.199337]    [11.0047]      [0.000600896]
+  83 │    0.01      0.1     0.01     83  [0.327958]  -12.9563   0.0524492  [-0.30582]    [-0.209985]    [11.0047]      [0.000632995]
+  84 │    0.01      0.1     0.01     84  [0.328591]  -13.1346   0.041753   [0.247892]    [-0.164198]    [11.0047]      [0.000494969]
+  85 │    0.01      0.1     0.01     85  [0.329086]  -13.0579   0.0505069  [-0.306983]   [-0.178476]    [11.0047]      [0.000538011]
+  86 │    0.01      0.1     0.01     86  [0.329624]  -13.0235   0.0456695  [-0.424132]   [-0.203042]    [11.0047]      [0.000612064]
+  87 │    0.01      0.1     0.01     87  [0.330236]  -13.0402   0.0519846  [0.357145]    [-0.147023]    [11.0047]      [0.000443197]
+  88 │    0.01      0.1     0.01     88  [0.330679]  -13.0492   0.0435686  [0.0822667]   [-0.124094]    [11.0047]      [0.000374078]
+  89 │    0.01      0.1     0.01     89  [0.331054]  -13.0075   0.0473513  [-0.205805]   [-0.132265]    [11.0047]      [0.00039871]
+  90 │    0.01      0.1     0.01     90  [0.331452]  -13.0329   0.0605753  [0.251406]    [-0.093898]    [11.0047]      [0.000283053]
+  91 │    0.01      0.1     0.01     91  [0.331735]  -12.9268   0.0533059  [-0.30183]    [-0.114691]    [11.0047]      [0.000345734]
+  92 │    0.01      0.1     0.01     92  [0.332081]  -13.0004   0.0558166  [-0.139918]   [-0.117214]    [11.0047]      [0.000353338]
+  93 │    0.01      0.1     0.01     93  [0.332434]  -12.9806   0.0616536  [-0.534493]   [-0.158942]    [11.0047]      [0.000479126]
+  94 │    0.01      0.1     0.01     94  [0.332913]  -12.9551   0.0583034  [-0.288271]   [-0.171875]    [11.0047]      [0.000518112]
+  95 │    0.01      0.1     0.01     95  [0.333432]  -12.9855   0.0523317  [0.0712784]   [-0.147559]    [11.0047]      [0.000444814]
+  96 │    0.01      0.1     0.01     96  [0.333876]  -13.052    0.0469872  [0.232699]    [-0.109534]    [11.0047]      [0.000330186]
+  97 │    0.01      0.1     0.01     97  [0.334207]  -12.9528   0.0568699  [-0.180021]   [-0.116582]    [11.0047]      [0.000351434]
+  98 │    0.01      0.1     0.01     98  [0.334558]  -13.0042   0.043238   [0.596209]    [-0.0453032]   [11.0047]      [0.000136565]
+  99 │    0.01      0.1     0.01     99  [0.334695]  -12.9631   0.0539235  [0.33178]     [-0.00759489]  [11.0047]      [2.28946e-5]
+ 100 │    0.01      0.1     0.01    100  [0.334717]  -12.9329   0.0513708  [-0.514397]   [-0.0582751]   [11.0047]      [0.000175669]
+ 101 │    0.01      0.1     0.01    101  [0.334893]  -13.0163   0.0569657  [-0.286762]   [-0.0811237]   [11.0047]      [0.000244545]</code></pre><p>To plot it, we can either work with the <code>DataFrame</code> or access the fields directly</p><pre><code class="language-julia hljs">begin
+    fig = Figure()
+    ax1 = Axis(fig[1, 1]; xlabel=L&quot;i&quot;, ylabel=L&quot;E_v&quot;)
+    ax2 = Axis(fig[2, 1]; xlabel=L&quot;i&quot;, ylabel=L&quot;p&quot;)
+
+    lines!(ax1, grad_df.iter, grad_df.value)
+    lines!(ax2, first.(grad_result.param))
+    fig
+end</code></pre><p><img src="../guide-41.png" alt/></p><p>We see from the plot that the value of the energy is fluctiating around what appears to be the minimum. While the parameter estimate here is probably good enough for importance sampling, we can refine the result by creating a new <code>KineticVQMC</code> structure with increased samples and use it to refine the result. Here, we can pass the previous result <code>grad_result</code> in place of the initial parameters, which will continue the computation where the previous one left off. Alternatively, this can be achieved by passing the <code>first_moment_init</code> and <code>second_moment_init</code> arguments to <code>amsgrad</code>.</p><pre><code class="language-julia hljs">qmc2 = KineticVQMC(H, ansatz; samples=1e6)
+grad_result2 = amsgrad(qmc2, grad_result)</code></pre><pre><code class="nohighlight hljs">GradientDescentResult
+  iterations: 101
+  converged: false (iterations)
+  last value: -13.004553563241346 ± 0.005709151039685408
+  last params: [0.3330390776638849]</code></pre><p>Now, let&#39;s plot the refined result next to the minimum found by Optim.jl</p><pre><code class="language-julia hljs">begin
+    fig = Figure()
+    ax1 = Axis(fig[1, 1]; xlabel=L&quot;i&quot;, ylabel=L&quot;E_v&quot;)
+    ax2 = Axis(fig[2, 1]; xlabel=L&quot;i&quot;, ylabel=L&quot;p&quot;)
+
+    lines!(ax1, grad_result2.value)
+    hlines!(ax1, [opt_lbgfs.minimum]; linestyle=:dot)
+    lines!(ax2, first.(grad_result2.param))
+    hlines!(ax2, opt_lbgfs.minimizer; linestyle=:dot)
+    fig
+end</code></pre><p><img src="../guide-45.png" alt/></p><h3 id="Importance-sampling"><a class="docs-heading-anchor" href="#Importance-sampling">Importance sampling</a><a id="Importance-sampling-1"></a><a class="docs-heading-anchor-permalink" href="#Importance-sampling" title="Permalink"></a></h3><p>Finally, we have a good estimate for the parameter to use with importance sampling. Gutzwiller.jl provides <code>AnsatzSampling</code>, which is similar to <code>GutzwillerSampling</code> from Rimu, but can be used with different ansatze.</p><pre><code class="language-julia hljs">p = grad_result.param[end]
+G = AnsatzSampling(H, ansatz, p)</code></pre><pre><code class="nohighlight hljs">AnsatzSampling{false, Float64, 1, GutzwillerAnsatz{Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, Float64, Rimu.Hamiltonians.HubbardReal1D{Float64, Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, 2.0, 1.0}}, Rimu.Hamiltonians.HubbardReal1D{Float64, Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, 2.0, 1.0}}(HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0), GutzwillerAnsatz{Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, Float64, Rimu.Hamiltonians.HubbardReal1D{Float64, Rimu.BitStringAddresses.BoseFS{10, 10, Rimu.BitStringAddresses.BitString{19, 1, UInt32}}, 2.0, 1.0}}(HubbardReal1D(fs&quot;|1 1 1 1 1 1 1 1 1 1⟩&quot;; u=2.0, t=1.0)), [0.334893156430504])</code></pre><p>This can now be used with FCIQMC. Let&#39;s compare the importance sampled time series to a non-importance sampled one.</p><pre><code class="language-julia hljs">
+prob_standard = ProjectorMonteCarloProblem(H; target_walkers=15, last_step=2000)
+sim_standard = solve(prob_standard)
+shift_estimator(sim_standard; skip=1000)</code></pre><pre><code class="nohighlight hljs">BlockingResult{Float64}
+  mean = -11.68 ± 0.56
+  with uncertainty of ± 0.07196228231158769
+  from 31 blocks after 5 transformations (k = 6).
+</code></pre><pre><code class="language-julia hljs">prob_sampled = ProjectorMonteCarloProblem(G; target_walkers=15, last_step=2000)
+sim_sampled = solve(prob_sampled)
+shift_estimator(sim_sampled; skip=1000)</code></pre><pre><code class="nohighlight hljs">BlockingResult{Float64}
+  mean = -13.13 ± 0.35
+  with uncertainty of ± 0.03144224137421748
+  from 62 blocks after 4 transformations (k = 5).
+</code></pre><p>Note that the lower energy estimate in the sampled case is probably due to a reduced population control bias. The effect importance sampling has on the statistic can be more dramatic for larger systems and beter choices of anstaze.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 11 September 2026 10:28">Friday 11 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
