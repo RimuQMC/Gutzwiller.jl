@@ -17,22 +17,11 @@ Projected onto a Fock basis state ``|n_1, …, n_M⟩``, the amplitude is:
 
 # Example
 ```jldoctest
-julia> H = HubbardReal1D(BoseFS((2, 0)))
-julia> gpe = GrossPitaevskiiAnsatz(H)
-julia> gpe_from_address = GrossPitaevskiiAnsatz(starting_address(H))
-julia> complex_gpe = GrossPitaevskiiAnsatz(starting_address(H); valtype=ComplexF64)
+julia> gpa = GrossPitaevskiiAnsatz(BoseFS(2, 0))
+GrossPitaevskiiAnsatz(BoseFS(2, 0))
 
-julia> params = SVector(inv(sqrt(2.0)), inv(sqrt(2.0)))
-julia> addr = BoseFS((1, 1))
-julia> amplitude = gpe(addr, params)
-julia> amplitude, gradient = val_and_grad(gpe, addr, params)
-
-julia> basis = build_basis(gpe)
-julia> state = PDVec(gpe, params; basis=basis)
-
-julia> evaluator = LocalEnergyEvaluator(H, gpe)
-julia> energy = evaluator(params)
-julia> energy, energy_gradient = val_and_grad(evaluator, params);
+julia> amplitude = gpa(BoseFS(1,1), [1.0, 2.0])
+2.8284271247461903
 ```
 """
 struct GrossPitaevskiiAnsatz{A,T<:Number,M} <: AbstractAnsatz{A,T,M}
