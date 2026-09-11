@@ -75,7 +75,14 @@ end
     @test GrossPitaevskiiAnsatz(addr; valtype=ComplexF64) isa GrossPitaevskiiAnsatz{<:Any,ComplexF64,2}
     @test starting_address(gpa) == addr
     @test build_basis(gpa) == build_basis(addr)
-    @test repr(gpa) == "GrossPitaevskiiAnsatz($(gpa.address))"
+    @test eval(Meta.parse(repr(gpa))) == gpa
+    for T in (Float64, ComplexF64, Float32)
+        ansatz = GrossPitaevskiiAnsatz(addr; valtype=T)
+        @test eval(Meta.parse(repr(ansatz))) == ansatz
+    end
+
+    check_ansatz(H, gpa, rand(2))
+    check_ansatz(H, GrossPitaevskiiAnsatz(H), rand(2))
     @test iszero(gpa(addr, SVector(0.0, 1.0)))
     @test gpa(addr, SVector(0.5, 0.5)) ≈ 0.25
 

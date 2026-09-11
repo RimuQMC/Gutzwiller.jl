@@ -18,7 +18,7 @@ Projected onto a Fock basis state ``|n_1, …, n_M⟩``, the amplitude is:
 # Example
 ```jldoctest
 julia> gpa = GrossPitaevskiiAnsatz(BoseFS(2, 0))
-GrossPitaevskiiAnsatz(BoseFS(2, 0))
+GrossPitaevskiiAnsatz(BoseFS(2, 0); valtype=Float64)
 
 julia> amplitude = gpa(BoseFS(1,1), [1.0, 2.0])
 2.8284271247461903
@@ -32,14 +32,15 @@ function GrossPitaevskiiAnsatz(addr::BoseFS; valtype::Type=Float64)
     return GrossPitaevskiiAnsatz{typeof(addr),valtype,num_modes(addr)}(addr)
 end
 
-GrossPitaevskiiAnsatz(h::AbstractHamiltonian) =
-    GrossPitaevskiiAnsatz(starting_address(h); valtype=eltype(h))
+function GrossPitaevskiiAnsatz(h::AbstractHamiltonian)
+    return GrossPitaevskiiAnsatz(starting_address(h); valtype=eltype(h))
+end
 
 Rimu.starting_address(gpa::GrossPitaevskiiAnsatz) = gpa.address
 Rimu.build_basis(gpa::GrossPitaevskiiAnsatz) = build_basis(gpa.address)
 
-function Base.show(io::IO, gpa::GrossPitaevskiiAnsatz{A,V,N}) where {A,V,N}
-    print(io, "GrossPitaevskiiAnsatz($(gpa.address))")
+function Base.show(io::IO, gpa::GrossPitaevskiiAnsatz{<:Any,T}) where {T}
+    print(io, "GrossPitaevskiiAnsatz($(gpa.address); valtype=$T)")
 end
 
 # evaluate GP ansatz amplitude
