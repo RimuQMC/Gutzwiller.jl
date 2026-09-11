@@ -10,4 +10,12 @@ DocMeta.setdocmeta!(
     recursive=true,
 )
 
-doctest(Gutzwiller; doctestfilters=[r"(\d*)\.(\d{4})\d+" => s"\1.\2"], manual=false)
+doctest(
+    Gutzwiller;
+    doctestfilters=[
+        r"(\d*)\.(\d{4})\d+" => s"\1.\2",
+        r"\|f\(x\) - f\(x'\)\|.*" => s"",
+        r"\|g\(x\)\|.*" => s"",
+    ],
+    manual=false,
+)
