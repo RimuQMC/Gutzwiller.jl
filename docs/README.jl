@@ -75,14 +75,14 @@ end
 
 # To find the minimum, pass `le` to `optimize` from Optim.jl
 
-using Optim
+using Optim, NLSolversBase
 
 opt_nelder = optimize(le, [1.0])
 
-# To take advantage of the gradients, wrap the evaluator in `Optim.only_fg!`. This will
+# To take advantage of the gradients, wrap the evaluator in `only_fg!`. This will
 # usually reduce the number of steps needed to reach the minimum.
 
-opt_lbgfs = optimize(Optim.only_fg!(le), [1.0])
+opt_lbgfs = optimize(only_fg!(le), [1.0])
 
 # We can inspect the parameters and the value at the minimum as
 
