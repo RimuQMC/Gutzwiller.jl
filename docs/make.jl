@@ -1,5 +1,11 @@
 using Documenter
 using Gutzwiller
+using Literate
+
+Literate.markdown(
+    joinpath(@__DIR__, "README.jl"), joinpath(@__DIR__, "src", "generated");
+    name="guide", flavor=Literate.CommonMarkFlavor(), execute=true,
+)
 
 makedocs(;
     modules=[Gutzwiller],
@@ -9,6 +15,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Usage Guide" => "generated/guide.md",
         "API" => "api.md",
     ],
     checkdocs=:exports,

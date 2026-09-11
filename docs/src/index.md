@@ -15,5 +15,5 @@ Gutzwiller.jl is not yet registered. To install it, run
 import Pkg; Pkg.add(url="https://github.com/RimuQMC/Gutzwiller.jl")
 ```
 
-See the [README](https://github.com/RimuQMC/Gutzwiller.jl#readme) for a usage guide, and
-the [API](@ref) page for reference documentation.
+See the [Usage Guide](generated/guide.md) page for a walkthrough, and the [API](@ref)
+page for reference documentation.
