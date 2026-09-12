@@ -1,7 +1,7 @@
 """
     abstract type AbstractAnsatz{K,V,N}
 
-An ansatz behaves similar to an [`AbstractDVec`](@ref) with `keytype` `K` and `valtype` `V`
+An ansatz behaves similar to an [`AbstractDVec`](@extref Rimu Rimu.Interfaces.AbstractDVec) with `keytype` `K` and `valtype` `V`
 with `N` parameters.
 
 It must provide the following:
@@ -10,7 +10,7 @@ It must provide the following:
   specified parameters.
 * `val_and_grad(ansatz, key, params)`: Get the value and gradient (w.r.t. the parameters) of
   the ansatz.
-* [`build_basis`](@ref): for collecting the vector to `DVec/PDVec` (optional).
+* [`build_basis`](@extref Rimu Rimu.ExactDiagonalization.build_basis): for collecting the vector to `DVec/PDVec` (optional).
 """
 abstract type AbstractAnsatz{K,V,N} end
 

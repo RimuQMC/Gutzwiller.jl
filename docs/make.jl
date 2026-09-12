@@ -1,10 +1,15 @@
 using Documenter
+using DocumenterInterLinks
 using Gutzwiller
 using Literate
 
 Literate.markdown(
     joinpath(@__DIR__, "README.jl"), joinpath(@__DIR__, "src", "generated");
     name="guide", flavor=Literate.CommonMarkFlavor(), execute=true,
+)
+
+links = InterLinks(
+    "Rimu" => "https://rimuqmc.github.io/Rimu.jl/stable/",
 )
 
 makedocs(;
@@ -20,7 +25,7 @@ makedocs(;
     ],
     checkdocs=:exports,
     doctest=false, # doctests are run as part of the test suite, see test/doctests.jl
-    warnonly=[:cross_references], # some docstrings reference external Rimu.jl symbols
+    plugins=[links],
 )
 
 deploydocs(;

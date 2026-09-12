@@ -140,7 +140,7 @@ The sampling samples `steps` steps per `walker`. The walkers are independent run
 on separate threads.
 
 The function returns a [`KineticVQMCResult`](@ref)s, which contains the states of all
-walkers. To continue a run, use [`continous_time_vqmc!`](@ref).
+walkers. To continue a run, use [`kinetic_vqmc!`](@ref).
 
 See [I. Sabzevari and S. Sharma](https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780) for
 a detailed description of the algorithm.
