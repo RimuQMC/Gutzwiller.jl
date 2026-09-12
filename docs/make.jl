@@ -1,5 +1,6 @@
 using Documenter
 using DocumenterInterLinks
+using DocumenterCodeBlocks
 using Gutzwiller
 using Literate
 
@@ -25,7 +26,7 @@ makedocs(;
     ],
     checkdocs=:exports,
     doctest=false, # doctests are run as part of the test suite, see test/doctests.jl
-    plugins=[links],
+    plugins=[links, CodeBlocks()],
 )
 
 deploydocs(;

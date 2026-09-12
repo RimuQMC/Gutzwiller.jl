@@ -4,11 +4,15 @@ using Rimu.Hamiltonians: circshift_dot
 """
     JastrowAnsatz(hamiltonian) <: AbstractAnsatz
 
+A Jastrow ansatz with pairwise correlations.
+
 ```math
-J(|f⟩; 𝐩) = exp(-∑_{k=1}^M ∑_{l=k}^M p_{k,l} ⟨f| n_k n_l |f⟩)
+J(|f⟩; 𝐩) = \\exp(-∑_{k=1}^M ∑_{l=k}^M p_{k,l} ⟨f| n_k n_l |f⟩)
 ```
 
 With translationally invariant Hamiltonians, use [`RelativeJastrowAnsatz`](@ref) instead.
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct JastrowAnsatz{A,N,H} <: AbstractAnsatz{A,Float64,N}
     hamiltonian::H
@@ -61,12 +65,15 @@ end
 """
     RelativeJastrowAnsatz(hamiltonian) <: AbstractAnsatz
 
+Jastrow ansatz with pair correlations.
 For a translationally invariant Hamiltonian, this is equivalent to [`JastrowAnsatz`](@ref),
 but has fewer parameters.
 
 ```math
-R(|f⟩; 𝐩) = exp(-∑_{d=0}^{M/2} p_d ∑_{k=1}^M ⟨f| n_k n_{k + d} |f⟩)
+R(|f⟩; 𝐩) = \\exp(-∑_{d=0}^{M/2} p_d ∑_{k=1}^M ⟨f| n_k n_{k + d} |f⟩)
 ```
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct RelativeJastrowAnsatz{A,N,H} <: AbstractAnsatz{A,Float64,N}
     hamiltonian::H

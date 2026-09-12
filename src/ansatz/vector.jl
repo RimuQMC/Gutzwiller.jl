@@ -1,7 +1,10 @@
 """
     VectorAnsatz(vector::AbstractDVec) <: AbstractAnsatz
 
-Use `vector` as 0-parameter ansatz.
+A zero-parameter ansatz defined by a state vector.
+
+See also [`AbstractAnsatz`](@ref) and
+[`AbstractDVec`](@extref Rimu Rimu.Interfaces.AbstractDVec).
 """
 struct VectorAnsatz{A,T,D<:AbstractDVec{A,T}} <: AbstractAnsatz{A,T,0}
     vector::D

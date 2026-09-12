@@ -4,12 +4,14 @@
 The Extended Gutzwiller ansatz:
 
 ```math
-G(|f⟩; 𝐠) = exp(-g_1 ⟨f|H|f⟩ - g_2 ⟨f| ∑_{<i,j>} n_i n_j |f⟩),
+G(|f⟩; 𝐠) = \\exp(-g_1 ⟨f|H|f⟩ - g_2 ⟨f| ∑_{<i,j>} n_i n_j |f⟩),
 ```
 
 where ``H`` is an ExtendedHubbardReal1D Hamiltonian. The additional term accounts for the strength of nearest-neighbour interactions.
 
 It takes two parameters, `g_1` and `g_2`.
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct ExtendedGutzwillerAnsatz{A,T<:Real,H} <: AbstractAnsatz{A,T,2}
     hamiltonian::H

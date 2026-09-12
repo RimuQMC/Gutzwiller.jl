@@ -1,9 +1,13 @@
 """
     DensityProfileAnsatz(hamiltonian) <: AbstractAnsatz
 
+Ansatz derived that weights the Fock basis states by their density profile, with
+parameters `p`:
 ```math
-D(|f⟩; p) = exp(-∑_{i=1}^M p_i ⟨f|n_i|f⟩)
+D(|f⟩; p) = \\exp(-∑_{i=1}^M p_i ⟨f|n_i|f⟩)
 ```
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct DensityProfileAnsatz{A,N,H} <: AbstractAnsatz{A,Float64,N}
     hamiltonian::H

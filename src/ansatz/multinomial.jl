@@ -2,18 +2,18 @@
     MultinomialAnsatz(H::AbstractHamiltonian; normalize=false)
 
 The multinomial ansatz
-
 ```math
-F(|n_1, n_2, n_3, …⟩; p) = K ( ∏_{i=1}^M 1/n_i )^p.
+F(|n_1, n_2, n_3, …⟩; p) = K ( ∏_{i=1}^M 1/n_i )^p .
 ```
 
-If ``p = 1/2``, this is the exact solution to a non-interacting Bose-Hubbard model. If `normalize` is set to `true`, a normalization factor of
-
+If ``p = 1/2``, this is the exact solution to a non-interacting Bose-Hubbard model. If
+`normalize` is set to `true`, a normalization factor of
 ```math
-K = (\frac{N}{M^N})^p
+K = \\left(\\frac{N}{M^N}\\right)^p
 ```
-
 is applied.
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct MultinomialAnsatz{K} <: Gutzwiller.AbstractAnsatz{K,Float64,1}
     normalization::Float64

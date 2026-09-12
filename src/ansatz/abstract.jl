@@ -1,16 +1,48 @@
 """
-    abstract type AbstractAnsatz{K,V,N}
+    AbstractAnsatz{K,V,N}
 
-An ansatz behaves similar to an [`AbstractDVec`](@extref Rimu Rimu.Interfaces.AbstractDVec) with `keytype` `K` and `valtype` `V`
-with `N` parameters.
+Abstract type for ansatzes. An ansatz is a function that maps a Fock basis state to a value,
+with a set of parameters, and thus represents a quantum state. Variational Monte Carlo (VMC)
+methods can be used to optimize the parameters of an ansatz to minimize the energy or the
+variance of the energy of a given Hamiltonian. The ansatz can be also be used as a guiding
+function for importance sampling using [`AnsatzSampling`](@ref) in a projector Monte Carlo
+simulation with [`ProjectorMonteCarloProblem`](@extref Rimu.ProjectorMonteCarloProblem), or
+to compute expectation values of observables.
 
-It must provide the following:
+An ansatz has a `keytype`
+[`K <: AbstractFockAddress`](@extref Rimu Rimu.Interfaces.AbstractFockAddress) representing
+the type of the Fock basis states, and `valtype` `V <: Number` representing the type of the
+values it produces. It has `N` parameters.
+
+It behaves similar to an [`AbstractDVec`](@extref Rimu Rimu.Interfaces.AbstractDVec) with
+`keytype` `K` and `valtype` `V`.
+
+See also [`AbstractAnsatz`](@ref).
+)
+with `keytype` `K` and `valtype` `V`.
+
+## Implemented subtypes
+* [`GutzwillerAnsatz`](@ref)
+* [`ExtendedGutzwillerAnsatz`](@ref)
+* [`VectorAnsatz`](@ref)
+* [`MultinomialAnsatz`](@ref)
+* [`JastrowAnsatz`](@ref)
+* [`RelativeJastrowAnsatz`](@ref)
+* [`DensityProfileAnsatz`](@ref)
+* [`CombinationAnsatz`](@ref)
+* [`GrossPitaevskiiAnsatz`](@ref)
+
+# Extended Help
+Define your own ansatz by subtyping `MyAnsatz <: AbstractAnsatz` and implementing the
+following methods for an instance `ansatz::MyAnsatz` of your type:
 
 * `ansatz(key::K, params)::V`: Get the value of the ansatz for a given address `key` with
   specified parameters.
-* `val_and_grad(ansatz, key, params)`: Get the value and gradient (w.r.t. the parameters) of
-  the ansatz.
-* [`build_basis`](@extref Rimu Rimu.ExactDiagonalization.build_basis): for collecting the vector to `DVec/PDVec` (optional).
+* [`val_and_grad(ansatz, key, params)`](@ref): Get the value and gradient (w.r.t. the
+  parameters) of the ansatz.
+* [`build_basis(ansatz)`](@extref Rimu Rimu.ExactDiagonalization.build_basis): for
+  collecting the vector to [`DVec`](@extref Rimu Rimu.DictVectors.DVec) or
+  [`PDVec`](@extref Rimu Rimu.DictVectors.PDVec) (optional).
 """
 abstract type AbstractAnsatz{K,V,N} end
 
@@ -44,6 +76,8 @@ end
     val_and_grad(::AbstractAnsatz, addr, params)
 
 Return ansatz value at `addr` and its gradient w.r.t. `params`.
+
+See also [`AbstractAnsatz`](@ref).
 """
 val_and_grad
 

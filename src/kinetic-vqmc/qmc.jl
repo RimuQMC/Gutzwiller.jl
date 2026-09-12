@@ -8,8 +8,9 @@ the residence time of the current address, and the local energy.
 `prob_buffer` is a `Vector{Float64}` used as temporary storage.
 
 The algorithm for sampling is taken from [1].
+This function is used internally by [`kinetic_vqmc!`](@ref) and [`kinetic_vqmc`](@ref).
 
-[1]: https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780
+[1]: [I. Sabzevari and S. Sharma, JCTC (2018), doi:10.1021/acs.jctc.8b00780](https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780)
 """
 function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, addr_n)
     column = hamiltonian * addr_n
@@ -82,7 +83,7 @@ end
     kinetic_vqmc!(sts::Vector{KineticVQMCWalkerState}; steps)
     kinetic_vqmc!(res::KineticVQMCResult; steps)
 
-Continue a [`kinetic_vqmc`](@ref) computation, peforming `steps` additional steps
+Continue a [`kinetic_vqmc`](@ref) computation, performing `steps` additional steps
 (default is the current number of samples in the input).
 
 Returns its input.
@@ -142,8 +143,10 @@ on separate threads.
 The function returns a [`KineticVQMCResult`](@ref)s, which contains the states of all
 walkers. To continue a run, use [`kinetic_vqmc!`](@ref).
 
-See [I. Sabzevari and S. Sharma](https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780) for
-a detailed description of the algorithm.
+See [I. Sabzevari and S. Sharma, JCTC (2018), doi:10.1021/acs.jctc.8b00780](https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780)
+for a detailed description of the algorithm.
+
+See also [`AbstractAnsatz`](@ref).
 """
 function kinetic_vqmc(
     hamiltonian, ansatz, params;

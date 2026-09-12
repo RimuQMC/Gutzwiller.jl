@@ -3,6 +3,8 @@
 
 Superposition of `ansatz1` and `ansatz2`. Has one more parameter than each ansatz controling
 the mixing between them.
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct CombinationAnsatz{
     K,V,N,A<:AbstractAnsatz{K,V},B<:AbstractAnsatz{K,V}

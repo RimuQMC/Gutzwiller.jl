@@ -1,7 +1,7 @@
 using Rimu.Hamiltonians: ModifiedHamiltonian, TransformUndoer, parent_operator
 
 """
-struct AnsatzSampling(hamiltonian, ansatz, params)
+    AnsatzSampling(hamiltonian, ansatz, params) <: Rimu.ModifiedHamiltonian
 
 Importance-sampled Hamiltonian, where the importance sampling is controlled by `ansatz` and
 `params`.
@@ -26,6 +26,8 @@ julia> Matrix(G)
  -0.0772832     0.0       6.0
 
 ```
+See also [`AbstractAnsatz`](@ref) and
+[`AbstractHamiltonian`](@extref Rimu Rimu.Interfaces.AbstractHamiltonian).
 """
 struct AnsatzSampling{Adj,T,N,A<:AbstractAnsatz{<:Any,T,N},H} <: ModifiedHamiltonian{T}
     hamiltonian::H

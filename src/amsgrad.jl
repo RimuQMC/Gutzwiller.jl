@@ -76,14 +76,15 @@ end
         first_moment_init, second_moment_init, fix_params,
         kwargs...
     )
-
-For immediately useful versions of this function, see [`gradient_descent`] and [`amsgrad`].
-Returns [`GradientDescentResult`](@ref).
+Generic adaptive gradient descent on function `f` with initial parameters `p_init`.
+The functions `φ` and `ψ` are used to update the first and second moment, respectively.
+For immediately useful versions of this function, see [`gradient_descent`](@ref) and
+[`amsgrad`](@ref). Returns a [`GradientDescentResult`](@ref).
 
 ## Arguments
 
 - `φ`, `ψ`: functions for updating the first and second moment. These are set by the caller
-  ([`gradient_descent`] and [`amsgrad`]).
+  ([`gradient_descent`](@ref) and [`amsgrad`](@ref)).
 - `f`: the function to be optimized. Must be callable with parameters of the same shape as
   `p_init`.
 - `p_init`: initial parameter estimate. Alternatively, a [`GradientDescentResult`](@ref) may
