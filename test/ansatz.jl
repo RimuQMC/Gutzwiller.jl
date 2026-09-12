@@ -2,6 +2,7 @@ using Test
 using Gutzwiller
 using Rimu
 using ForwardDiff
+using StaticArrays: SVector
 
 function check_ansatz(H, ansatz, params)
     @testset "$H / $(nameof(typeof(ansatz)))" begin
@@ -55,6 +56,7 @@ end
         end
         if starting_address(H) isa BoseFS
             check_ansatz(H, MultinomialAnsatz(H), rand(1))
+            check_ansatz(H, GrossPitaevskiiAnsatz(H), rand(M))
             check_ansatz(H, GutzwillerAnsatz(H) + MultinomialAnsatz(H), rand(3))
         end
         if starting_address(H) isa SingleComponentFockAddress
@@ -62,6 +64,37 @@ end
             check_ansatz(H, RelativeJastrowAnsatz(H), rand(cld(M, 2)))
             check_ansatz(H, DensityProfileAnsatz(H), rand(M))
         end
+    end
+end
+
+@testset "GrossPitaevskiiAnsatz" begin
+    H = HubbardReal1D(BoseFS((2, 0)))
+    addr = starting_address(H)
+    gpa = GrossPitaevskiiAnsatz(addr)
+    @test GrossPitaevskiiAnsatz(H) isa GrossPitaevskiiAnsatz{<:Any,Float64,2}
+    @test GrossPitaevskiiAnsatz(addr; valtype=ComplexF64) isa GrossPitaevskiiAnsatz{<:Any,ComplexF64,2}
+    @test starting_address(gpa) == addr
+    @test build_basis(gpa) == build_basis(addr)
+    @test eval(Meta.parse(repr(gpa))) == gpa
+    for T in (Float64, ComplexF64, Float32)
+        ansatz = GrossPitaevskiiAnsatz(addr; valtype=T)
+        @test eval(Meta.parse(repr(ansatz))) == ansatz
+    end
+
+    check_ansatz(H, gpa, rand(2))
+    check_ansatz(H, GrossPitaevskiiAnsatz(H), rand(2))
+    @test iszero(gpa(addr, SVector(0.0, 1.0)))
+    @test gpa(addr, SVector(0.5, 0.5)) ≈ 0.25
+
+    for (a, p, expected_grad) in (
+        (addr, SVector(0.0, 1.0), SVector(0.0, 0.0)),
+        (BoseFS((1, 1)), SVector(0.0, 1.0), SVector(sqrt(2.0), 0.0)),
+        (BoseFS((1, 1)), SVector(0.0, 0.0), SVector(0.0, 0.0)),
+        (addr, SVector(0.5, 0.5), SVector(1.0, 0.0)),
+    )
+        val, grad = val_and_grad(gpa, a, p)
+        @test val ≈ gpa(a, p)
+        @test grad ≈ expected_grad
     end
 end
 

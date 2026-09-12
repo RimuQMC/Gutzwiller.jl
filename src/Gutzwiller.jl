@@ -29,6 +29,8 @@ export DensityProfileAnsatz
 include("ansatz/densityprofile.jl")
 export CombinationAnsatz
 include("ansatz/combination.jl")
+export GrossPitaevskiiAnsatz
+include("ansatz/grosspitaevskii.jl")
 
 export LocalEnergyEvaluator
 include("localenergy.jl")
