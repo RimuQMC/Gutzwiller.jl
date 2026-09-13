@@ -66,7 +66,7 @@ end
 
 The result of [`kinetic_vqmc`](@ref). Holds the state of each walker. Use
 [`local_energy_estimator`](@ref)`(result)` to get an estimate of the local energy, or
-[`PDVec`](@ref)`(result)` to materialize the sampled vector.
+[`PDVec`](@extref Rimu Rimu.DictVectors.PDVec)`(result)` to materialize the sampled vector.
 
 Supports the [Tables.jl](https://github.com/JuliaData/Tables.jl/) interface and a such can
 be converted to a `DataFrame` or saved to file with
@@ -177,7 +177,7 @@ such a way that
 
 independent of `len`.
 
-Using this function allows us to use [`blocking_analysis`](@ref) on the resampled data.
+Using this function allows us to use [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis) on the resampled data.
 
 See also: [`resample!`](@ref).
 """
@@ -260,7 +260,7 @@ end
     local_energy_estimator(res::KineticVQMCResultRows; kwargs...)
 
 Return the local energy estimator from the result of a [`kinetic_vqmc`](@ref) run.
-Keyword arguments are passed to [`blocking_analysis`](@ref). Returns a
+Keyword arguments are passed to [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis). Returns a
 [`CombinedBlockingResult`](@ref).
 """
 function local_energy_estimator(

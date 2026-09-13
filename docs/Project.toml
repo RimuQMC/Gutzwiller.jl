@@ -1,4 +1,11 @@
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterCodeBlocks = "b6400b83-267f-4b55-9fd8-bffc853bdfd8"
+DocumenterInterLinks = "d12716ef-a0f6-4df4-a9f1-a5a34e75c656"
+Gutzwiller = "934a285b-0f55-4204-bc81-2542b947ab7d"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
+NLSolversBase = "d41bc354-129a-5804-8e4c-c37616107c6c"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Rimu = "c53c40cc-bd84-11e9-2cf4-a9fde2b9386e"

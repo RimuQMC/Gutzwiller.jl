@@ -13,7 +13,7 @@ using SpecialFunctions
 using Tables
 using VectorInterface
 
-export num_parameters, val_and_grad, val_err_and_grad
+export num_parameters, val_and_grad, val_err_and_grad, AbstractAnsatz
 include("ansatz/abstract.jl")
 export VectorAnsatz
 include("ansatz/vector.jl")

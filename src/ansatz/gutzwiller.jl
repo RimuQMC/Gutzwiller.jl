@@ -4,12 +4,15 @@
 The Gutzwiller ansatz:
 
 ```math
-G(|f⟩; g) = exp(-g ⟨f|H|f⟩),
+G(|f⟩; g) = \\exp(-g ⟨f|H|f⟩),
 ```
 
 where ``H`` is the `hamiltonian` passed to the struct.
 
 It takes a single parameter, `g`.
+
+See also [`ExtendedGutzwillerAnsatz`](@ref) for a Gutzwiller ansatz that includes
+nearest-neighbour interactions, and [`AbstractAnsatz`](@ref).
 """
 struct GutzwillerAnsatz{A,T<:Real,H} <: AbstractAnsatz{A,T,1}
     hamiltonian::H

@@ -23,6 +23,8 @@ GrossPitaevskiiAnsatz(BoseFS(2, 0); valtype=Float64)
 julia> amplitude = gpa(BoseFS(1,1), [1.0, 2.0])
 2.8284271247461903
 ```
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct GrossPitaevskiiAnsatz{A,T<:Number,M} <: AbstractAnsatz{A,T,M}
     address::A
