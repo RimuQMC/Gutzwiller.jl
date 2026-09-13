@@ -1,6 +1,7 @@
 # Gutzwiller
 
 [![Coverage Status](https://coveralls.io/repos/github/RimuQMC/Gutzwiller.jl/badge.svg?branch=master)](https://coveralls.io/github/RimuQMC/Gutzwiller.jl?branch=master)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://rimuqmc.github.io/Gutzwiller.jl/)
 
 _importance sampling and variational Monte Carlo for
 [Rimu.jl](https://github.com/RimuQMC/Rimu.jl)_
