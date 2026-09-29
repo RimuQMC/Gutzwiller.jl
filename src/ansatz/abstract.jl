@@ -17,10 +17,6 @@ values it produces. It has `N` parameters.
 It behaves similar to an [`AbstractDVec`](@extref Rimu Rimu.Interfaces.AbstractDVec) with
 `keytype` `K` and `valtype` `V`.
 
-See also [`AbstractAnsatz`](@ref).
-)
-with `keytype` `K` and `valtype` `V`.
-
 ## Implemented subtypes
 * [`GutzwillerAnsatz`](@ref)
 * [`ExtendedGutzwillerAnsatz`](@ref)
