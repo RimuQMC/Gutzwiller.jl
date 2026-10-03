@@ -18,16 +18,9 @@ end
 
 Rimu.build_basis(ca::CoherentAnsatz) = build_basis(ca.hamiltonian)
 
-@inline function (ca::CoherentAnsatz)(addr::SingleComponentFockAddress, params)
-    @boundscheck begin
-        if length(params) != num_parameters(ca)
-            throw(ArgumentError("`CoherentAnsatz` with $(num_parameters(ca)) parameters called with $(length(params)) parameters"))
-        elseif length(params) != num_modes(addr)
-            throw(ArgumentError("`CoherentAnsatz` with $(num_parameters(ca)) parameters called with an address with $(num_modes(addr)) modes"))
-        end
-    end
+function (ca::CoherentAnsatz)(addr::SingleComponentFockAddress, params)
     logval = 0.0
-    @inbounds for (occnum, mode) in occupied_modes(addr)
+    for (occnum, mode) in occupied_modes(addr)
         logval += occnum * log(params[mode]) - loggamma(occnum + 1)/2
     end
     logval -= sum(abs2, params) / 2
