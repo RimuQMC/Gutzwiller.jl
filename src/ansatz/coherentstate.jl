@@ -5,7 +5,9 @@ Ansatz for a coherent state wave function.
 ```math
 C(|n_1, n_2, n_3, …⟩; \\mathbf{α}) = ∏_{k=1}^M \\frac{α_k^{n_k}}{\\sqrt{n_k!}} \\exp(\\frac{-|α_k^2|}{2})
 ```
-where α_k are variational parameters.
+where ``α_k`` are variational parameters.
+
+See also [`AbstractAnsatz`](@ref).
 """
 struct CoherentAnsatz{A,H,M} <: AbstractAnsatz{A,Float64,M}
     hamiltonian::H
