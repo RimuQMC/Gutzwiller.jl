@@ -51,6 +51,7 @@ end
         M = num_modes(starting_address(H))
 
         check_ansatz(H, GutzwillerAnsatz(H), rand(1))
+        check_ansatz(H, CoherentAnsatz(H), rand(num_modes_check_equal(starting_address(H))))
         if H isa ExtendedHubbardReal1D
             #check_ansatz(H, ExtendedGutzwillerAnsatz(H), rand(2))
         end

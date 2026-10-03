@@ -11,7 +11,7 @@ struct CoherentAnsatz{A,H,M} <: AbstractAnsatz{A,Float64,M}
     hamiltonian::H
 end
 function CoherentAnsatz(hamiltonian::H) where {H}
-    A = starting_address(hamiltonian)
+    A = typeof(starting_address(hamiltonian))
     M = num_modes_check_equal(A)
     return CoherentAnsatz{A,H,M}(hamiltonian)
 end
@@ -28,18 +28,25 @@ Rimu.build_basis(ca::CoherentAnsatz) = build_basis(ca.hamiltonian)
     end
     logval = 0.0
     @inbounds for (occnum, mode) in occupied_modes(addr)
-        occnum > maximum_mode_occupation(ca.hamiltonian) && return 0.0
         logval += occnum * log(params[mode]) - loggamma(occnum + 1)/2
     end
     logval -= sum(abs2, params) / 2
     return exp(logval)
 end
 
-function val_and_grad(ca::CoherentAnsatz, addr, params)
+function (ca::CoherentAnsatz)(addr::CompositeFS, params)
+    return sum(comp -> ca(comp, params), addr.components)
+end
+
+function val_and_grad(ca::CoherentAnsatz, addr::SingleComponentFockAddress, params)
     val = ca(addr, params)
     occ = onr(addr)
     grad = SVector{length(occ),Float64}(
         (occ[i] / params[i] - params[i]) * val for i in eachindex(occ)
     )
     return val, grad
+end
+
+function val_and_grad(ca::CoherentAnsatz, addr::CompositeFS, params)
+    return mapreduce(comp -> val_and_grad(ca, comp, params), .+, addr.components)
 end
