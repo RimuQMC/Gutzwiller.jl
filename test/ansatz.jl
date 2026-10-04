@@ -57,6 +57,7 @@ end
         if starting_address(H) isa BoseFS
             check_ansatz(H, MultinomialAnsatz(H), rand(1))
             check_ansatz(H, GrossPitaevskiiAnsatz(H), rand(M))
+            check_ansatz(H, CoherentAnsatz(H), rand(M))
             check_ansatz(H, GutzwillerAnsatz(H) + MultinomialAnsatz(H), rand(3))
         end
         if starting_address(H) isa SingleComponentFockAddress

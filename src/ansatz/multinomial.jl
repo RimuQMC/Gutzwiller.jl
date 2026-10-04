@@ -3,7 +3,7 @@
 
 The multinomial ansatz
 ```math
-F(|n_1, n_2, n_3, …⟩; p) = K ( ∏_{i=1}^M 1/n_i )^p .
+F(|n_1, n_2, n_3, …⟩; p) = K ( ∏_{i=1}^M 1/n_i! )^p .
 ```
 
 If ``p = 1/2``, this is the exact solution to a non-interacting Bose-Hubbard model. If

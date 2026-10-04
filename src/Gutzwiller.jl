@@ -31,6 +31,8 @@ export CombinationAnsatz
 include("ansatz/combination.jl")
 export GrossPitaevskiiAnsatz
 include("ansatz/grosspitaevskii.jl")
+export CoherentAnsatz
+include("ansatz/coherentstate.jl")
 
 export LocalEnergyEvaluator
 include("localenergy.jl")
