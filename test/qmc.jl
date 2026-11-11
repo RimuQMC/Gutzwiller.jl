@@ -160,4 +160,22 @@ Rimu.LOStructure(::Type{<:NoAdjoint}) = AdjointUnknown()
         qmc(0.5; equilibration=0)
         @test all(st -> length(st) == 500, qmc.result.states)
     end
+
+    @testset "walker state" begin
+        H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
+        res = kinetic_vqmc(H, GutzwillerAnsatz(H), 0.5; samples=1000, walkers=1)
+        st = only(res.states)
+
+        times = st.residence_times
+        energies = st.local_energies
+        μ = sum(times .* energies) / sum(times)
+        @test mean(res) ≈ μ
+        @test var(res) ≈ sum(times .* (energies .- μ) .^ 2) / sum(times)
+
+        empty!(st)
+        @test length(st.addresses) == 0
+        @test length(st.residence_times) == 0
+        @test length(st.local_energies) == 0
+        @test length(st.grad_ratios) == 0
+    end
 end

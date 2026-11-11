@@ -58,6 +58,7 @@ Base.valtype(::KineticVQMCWalkerState{<:Any,T}) where {T} = T
 function Base.empty!(st::KineticVQMCWalkerState)
     empty!(st.residence_times)
     empty!(st.local_energies)
+    empty!(st.grad_ratios)
     empty!(st.addresses)
     return st
 end
@@ -309,15 +310,29 @@ function local_energy_estimator(
     )
 end
 
+"""
+    mean(res::KineticVQMCResult)
+
+Return the mean of the local energies, weighted by the residence times.
+"""
 function Statistics.mean(res::KineticVQMCResult)
     s = Folds.sum(res.states) do st
         mean(st.local_energies, FrequencyWeights(st.residence_times))
     end
     return s / length(res.states)
 end
+"""
+    var(res::KineticVQMCResult)
+
+Return the variance of the local energies, weighted by the residence times, i.e. an
+estimate of ``⟨E_L^2⟩ - ⟨E_L⟩^2`` over the distribution sampled by the walkers.
+
+No bias correction is applied, as the residence times are not integer counts. To estimate
+the uncertainty of the mean, use [`local_energy_estimator`](@ref) instead.
+"""
 function Statistics.var(res::KineticVQMCResult)
     s = Folds.sum(res.states) do st
-        var(st.local_energies, FrequencyWeights(st.residence_times))
+        var(st.local_energies, FrequencyWeights(st.residence_times); corrected=false)
     end
     return s / length(res.states)
 end
