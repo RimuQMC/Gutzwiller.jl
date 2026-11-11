@@ -270,7 +270,9 @@ See [`adaptive_gradient_descent`](@ref) for descriptions of other keyword argume
 Returns [`GradientDescentResult`](@ref).
 """
 function amsgrad(f, params; β1=0.1, β2=0.01, kwargs...)
-    Base.depwarn("`amsgrad` is deprecated, use `stochastic_reconfiguration` instead.", :amsgrad)
+    Base.depwarn(
+        "`amsgrad` is deprecated, use `stochastic_reconfiguration` instead.", :amsgrad
+    )
     φ(m1, g; β1, _...) = (1 - β1) * m1 + β1 * g
     ψ(m2, g; β2, _...) = max.((1 - β2) * m2 + β2 * g.^2, m2)
     return adaptive_gradient_descent(φ, ψ, f, params; β1, β2, kwargs...)

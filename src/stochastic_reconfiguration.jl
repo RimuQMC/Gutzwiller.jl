@@ -83,8 +83,9 @@ end
 
 Return type of [`stochastic_reconfiguration`](@ref). Holds the trace of the optimization.
 
-Can be used as a `Table` from Tables.jl, e.g. converted to a `DataFrame`. Pass it in place of
-the initial parameters to [`stochastic_reconfiguration`](@ref) to continue the optimization.
+Can be used as a `Table` from Tables.jl, e.g. converted to a `DataFrame`. Pass it in place
+of the initial parameters to [`stochastic_reconfiguration`](@ref) to continue the
+optimization.
 
 # Fields
 
@@ -187,8 +188,8 @@ wave function changes, which makes it robust to badly scaled or redundant parame
   parameter is kept at its initial value.
 - `verbose=true`: show a progress bar.
 - `early_stop=true`: stop when the norm of the parameter update is below `param_tol`, or the
-  norm of the gradient is below `grad_tol`. With sampling noise, these are rarely reached, so
-  check convergence by plotting the trace.
+  norm of the gradient is below `grad_tol`. With sampling noise, these are rarely
+  reached, so check convergence by plotting the trace.
 - `fkwargs=(;)`: keyword arguments passed to `f`, e.g. `(; samples=1e5)` for a
   [`KineticVQMC`](@ref).
 
