@@ -235,10 +235,18 @@ end
 
 Vanilla gradient descent on function `f` with initial parameters `p0`.
 
+!!! warning "Deprecated"
+    `gradient_descent` is deprecated and will be removed in a future release. Use
+    [`stochastic_reconfiguration`](@ref) instead, which is considerably more robust.
+
 See [`adaptive_gradient_descent`](@ref) for descriptions of keyword arguments.
 Returns [`GradientDescentResult`](@ref).
 """
 function gradient_descent(f, params; kwargs...)
+    Base.depwarn(
+        "`gradient_descent` is deprecated, use `stochastic_reconfiguration` instead.",
+        :gradient_descent,
+    )
     φ(m1, g; _...) = g
     ψ(m2, g; _...) = ones(typeof(g))
     return adaptive_gradient_descent(φ, ψ, f, params; kwargs...)
@@ -254,10 +262,17 @@ end
 [AMSGrad](https://paperswithcode.com/method/amsgrad) on function `f` with initial parameters
 `p0`. `α`, `β1`, and `β2` are the parameters controlling AMSGrad.
 
+!!! warning "Deprecated"
+    `amsgrad` is deprecated and will be removed in a future release. Use
+    [`stochastic_reconfiguration`](@ref) instead, which is considerably more robust.
+
 See [`adaptive_gradient_descent`](@ref) for descriptions of other keyword arguments.
 Returns [`GradientDescentResult`](@ref).
 """
 function amsgrad(f, params; β1=0.1, β2=0.01, kwargs...)
+    Base.depwarn(
+        "`amsgrad` is deprecated, use `stochastic_reconfiguration` instead.", :amsgrad
+    )
     φ(m1, g; β1, _...) = (1 - β1) * m1 + β1 * g
     ψ(m2, g; β2, _...) = max.((1 - β2) * m2 + β2 * g.^2, m2)
     return adaptive_gradient_descent(φ, ψ, f, params; β1, β2, kwargs...)
