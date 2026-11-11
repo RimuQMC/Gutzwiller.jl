@@ -11,6 +11,8 @@ using KrylovKit
             G2 = AnsatzSampling(H, GutzwillerAnsatz(H), g)
 
             @test sparse(G1) ≈ sparse(G2)
+            @test LOStructure(G2) ≡ AdjointKnown()
+            @test sparse(G2') ≈ sparse(G2)'
         end
     end
 

@@ -1,14 +1,21 @@
 using Rimu.StatsTools: BlockingResult
 
 """
-    mutable struct KineticVQMCWalkerState(hamiltonian, ansatz)
+    mutable struct KineticVQMCWalkerState(hamiltonian, ansatz, params)
 
 Contains all information needed to perform continuous time variational quantum Monte Carlo.
 
+If `hamiltonian` is not Hermitian, its adjoint is stored in the `adjoint` field and used to
+compute the local energies. In that case the `hamiltonian` must have a known adjoint (see
+[`LOStructure`](@extref Rimu Rimu.Interfaces.LOStructure)).
+
 See also: [`kinetic_vqmc!`](@ref), [`kinetic_vqmc`](@ref).
 """
-mutable struct KineticVQMCWalkerState{A,T<:Real,H,N,V<:AbstractAnsatz{A,T,N}}
+mutable struct KineticVQMCWalkerState{
+    A,T<:Real,H,N,V<:AbstractAnsatz{A,T,N},HA<:Union{Nothing,AbstractHamiltonian},
+}
     hamiltonian::H
+    adjoint::HA
     ansatz::V
     params::SVector{N,T}
     curr_address::A
@@ -22,10 +29,27 @@ end
 function KineticVQMCWalkerState(
     hamiltonian::H, ansatz::V, params
 ) where {H,A,T,N,V<:AbstractAnsatz{A,T,N}}
-    return KineticVQMCWalkerState{A,T,H,N,V}(
-        hamiltonian, ansatz, SVector{N,T}(params),
+    adjoint = _adjoint_or_nothing(LOStructure(hamiltonian), hamiltonian)
+    return KineticVQMCWalkerState{A,T,H,N,V,typeof(adjoint)}(
+        hamiltonian, adjoint, ansatz, SVector{N,T}(params),
         starting_address(hamiltonian), A[], T[], T[], T[], T[], Pair{A,T}[],
     )
+end
+
+"""
+    _adjoint_or_nothing(::LOStructure, hamiltonian)
+
+Return the adjoint of a non-Hermitian `hamiltonian`, or `nothing` if the `hamiltonian` is
+Hermitian. Throw an `ArgumentError` if the adjoint is not known.
+"""
+_adjoint_or_nothing(::IsHermitian, _) = nothing
+_adjoint_or_nothing(::IsDiagonal, _) = nothing
+_adjoint_or_nothing(::AdjointKnown, hamiltonian) = hamiltonian'
+function _adjoint_or_nothing(::AdjointUnknown, hamiltonian)
+    throw(ArgumentError(
+        "The adjoint of $hamiltonian is not known. Kinetic VQMC requires a Hermitian " *
+        "Hamiltonian or a Hamiltonian with a known adjoint. See `LOStructure`."
+    ))
 end
 
 Base.keytype(::KineticVQMCWalkerState{A}) where {A} = A

@@ -4,6 +4,17 @@ using Random
 using Rimu
 using Test
 
+# Wraps a Hamiltonian and hides its adjoint.
+struct NoAdjoint{T,H} <: AbstractHamiltonian{T}
+    hamiltonian::H
+end
+NoAdjoint(hamiltonian) = NoAdjoint{eltype(hamiltonian),typeof(hamiltonian)}(hamiltonian)
+Rimu.starting_address(h::NoAdjoint) = starting_address(h.hamiltonian)
+Rimu.diagonal_element(h::NoAdjoint, addr) = diagonal_element(h.hamiltonian, addr)
+Rimu.num_offdiagonals(h::NoAdjoint, addr) = num_offdiagonals(h.hamiltonian, addr)
+Rimu.get_offdiagonal(h::NoAdjoint, addr, i) = get_offdiagonal(h.hamiltonian, addr, i)
+Rimu.LOStructure(::Type{<:NoAdjoint}) = AdjointUnknown()
+
 @testset "qmc" begin
     Random.seed!(1336)
 
@@ -100,6 +111,27 @@ using Test
         @test_throws ErrorException kinetic_vqmc(
             H, VectorAnsatz(vector), Float64[]; samples=100, walkers=1
         )
+    end
+
+    @testset "non-Hermitian Hamiltonians" begin
+        H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
+        ansatz = GutzwillerAnsatz(H)
+        params = 0.4
+
+        for G in (GutzwillerSampling(H, 0.3), AnsatzSampling(H, ansatz, 0.3))
+            @testset "$(nameof(typeof(G)))" begin
+                exact_val, exact_grad = val_and_grad(LocalEnergyEvaluator(G, ansatz), params)
+
+                res = kinetic_vqmc(G, ansatz, params; samples=1e6)
+                est = local_energy_estimator(res)
+                _, grad = val_and_grad(res)
+
+                @test est.mean - 4est.err < exact_val < est.mean + 4est.err
+                @test grad ≈ exact_grad rtol=0.02
+            end
+        end
+
+        @test_throws ArgumentError kinetic_vqmc(NoAdjoint(H), ansatz, params; samples=100)
     end
 
     @testset "walker state" begin
