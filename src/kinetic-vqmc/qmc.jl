@@ -1,8 +1,14 @@
 """
-    kinetic_sample!(offdiag_buffer, prob_buffer, hamiltonian, ansatz, params, curr_addr)
+    kinetic_sample!(
+        offdiag_buffer, prob_buffer, hamiltonian, adjoint, ansatz, params, curr_addr
+    )
 
 Use the `hamiltonian` and `curr_addr` to sample a new address from `ansatz` with parameters
 `params`, while also computing the local energy and the gradient ratio of `curr_addr`.
+
+`adjoint` is `nothing` for a Hermitian `hamiltonian`, and its adjoint otherwise. In the
+latter case, the local energy is computed for the Hermitian part of the `hamiltonian`
+(see [`_symmetrize_offdiagonal`](@ref)).
 
 Return a tuple of
 
