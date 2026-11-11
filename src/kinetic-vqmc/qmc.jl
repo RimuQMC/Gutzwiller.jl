@@ -154,9 +154,10 @@ from `hamiltonian` and `ansatz`. The `ansatz` must be indexable by addresses acc
 `hamiltonian` and must support `Base.keytype` and `Base.valtype`.
 
 The sampling samples `steps` steps per `walker`. The walkers are independent runs that run
-on separate threads. Each walker starts at `starting_address(hamiltonian)` and first performs
-`equilibration` steps without recording any samples, so that the recorded samples are not
-biased by the choice of the starting address. Set `equilibration=0` to record all steps.
+on separate threads. Each walker starts at `starting_address(hamiltonian)` and first
+performs `equilibration` steps without recording any samples, so that the recorded samples
+are not biased by the choice of the starting address. Set `equilibration=0` to record all
+steps.
 
 The function returns a [`KineticVQMCResult`](@ref)s, which contains the states of all
 walkers. To continue a run, use [`kinetic_vqmc!`](@ref).
