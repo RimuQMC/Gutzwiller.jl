@@ -64,7 +64,14 @@ end
 Rimu.Hamiltonians.parent_operator(h::AnsatzSampling) = h.hamiltonian
 Rimu.Hamiltonians.modify_diagonal(h::AnsatzSampling, _, value) = value
 
-Rimu.LOStructure(h::AnsatzSampling) = LOStructure(parent_operator(h))
+# The similarity transform makes the operator non-Hermitian even if the parent is Hermitian.
+function Rimu.LOStructure(::Type{<:AnsatzSampling{<:Any,<:Any,<:Any,<:Any,H}}) where {H}
+    if LOStructure(H) ≡ AdjointUnknown()
+        return AdjointUnknown()
+    else
+        return AdjointKnown()
+    end
+end
 function Rimu.adjoint(h::AnsatzSampling{A}) where {A}
     return AnsatzSampling{!A}(h.hamiltonian', h.ansatz, h.params)
 end
