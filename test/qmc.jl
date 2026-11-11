@@ -80,6 +80,28 @@ using Test
         end
     end
 
+    @testset "errors" begin
+        H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
+
+        # Neighbour amplitudes overflow to Inf.
+        @test_throws ErrorException kinetic_vqmc(
+            H, GutzwillerAnsatz(H), -200.0; samples=100, walkers=1
+        )
+
+        # Zero amplitude at the starting address.
+        vector = DVec(build_basis(H) .=> 1.0)
+        vector[starting_address(H)] = 0.0
+        @test_throws ErrorException kinetic_vqmc(
+            H, VectorAnsatz(vector), Float64[]; samples=100, walkers=1
+        )
+
+        # All neighbours of the starting address have zero amplitude.
+        vector = DVec(starting_address(H) => 1.0)
+        @test_throws ErrorException kinetic_vqmc(
+            H, VectorAnsatz(vector), Float64[]; samples=100, walkers=1
+        )
+    end
+
     @testset "walker state" begin
         H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
         res = kinetic_vqmc(H, GutzwillerAnsatz(H), 0.5; samples=1000, walkers=1)
