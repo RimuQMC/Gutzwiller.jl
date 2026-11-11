@@ -64,6 +64,17 @@ end
 function Base.length(st::KineticVQMCWalkerState)
     return length(st.addresses)
 end
+"""
+    val_and_grad(res::KineticVQMCWalkerState)
+    val_and_grad(res::KineticVQMCResult)
+
+Return the energy estimate and its gradient w.r.t. the parameters from the samples of a
+[`kinetic_vqmc`](@ref) run. The energy is the mean of the local energies weighted by the
+residence times. The gradient is estimated as ``2⟨O (E_L - E)⟩``, where ``O`` is the
+gradient of the ansatz divided by its value, and ``E_L`` is the local energy.
+
+See also [`val_err_and_grad`](@ref), [`local_energy_estimator`](@ref).
+"""
 function val_and_grad(res::KineticVQMCWalkerState)
     weights = FrequencyWeights(res.residence_times)
     val = mean(res.local_energies, weights)
@@ -72,6 +83,15 @@ function val_and_grad(res::KineticVQMCWalkerState)
 
     return val, grad
 end
+"""
+    val_err_and_grad(res::KineticVQMCWalkerState)
+    val_err_and_grad(res::KineticVQMCResult)
+
+Like [`val_and_grad`](@ref), but also return the standard error of the energy, computed
+with a blocking analysis of the resampled local energies (see [`resample`](@ref)). For a
+[`KineticVQMCResult`](@ref), the errors of the walkers are combined assuming they are
+independent.
+"""
 function val_err_and_grad(res::KineticVQMCWalkerState)
     weights = FrequencyWeights(res.residence_times)
 
@@ -90,7 +110,9 @@ end
 
 The result of [`kinetic_vqmc`](@ref). Holds the state of each walker. Use
 [`local_energy_estimator`](@ref)`(result)` to get an estimate of the local energy, or
-[`PDVec`](@extref Rimu Rimu.DictVectors.PDVec)`(result)` to materialize the sampled vector.
+[`PDVec`](@extref Rimu Rimu.DictVectors.PDVec)`(result)` to materialize the sampled
+distribution. The value at each address is the total residence time spent there, which is
+proportional to the square of the ansatz. The vector is normalized to have unit 2-norm.
 
 Supports the [Tables.jl](https://github.com/JuliaData/Tables.jl/) interface and a such can
 be converted to a `DataFrame` or saved to file with
@@ -189,19 +211,21 @@ function val_err_and_grad(res::KineticVQMCResult{<:Any,T}) where {T}
 end
 
 """
-    resample(residence_times, values; len=length(values))
+    resample(residence_times, values; len=length(residence_times))
 
-Resample unevenly spaced timeseries data into a vector of `len` evenly-spaced values.  Here,
+Resample unevenly spaced timeseries data into a vector of `len` evenly-spaced values. Here,
 the time `values[i]` occupies is equal to `residence_times[i]`. The resampling is done in
 such a way that
 
 ```julia
-    mean(resample(xs, ys; len)) == mean(xs, FrequencyWeights(ys))
+μ = mean(values, FrequencyWeights(residence_times))
+mean(resample(residence_times, values; len)) ≈ μ
 ```
 
 independent of `len`.
 
-Using this function allows us to use [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis) on the resampled data.
+Using this function allows us to use
+[`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis) on the resampled data.
 
 See also: [`resample!`](@ref).
 """
@@ -281,11 +305,15 @@ function Base.show(io::IO, res::CombinedBlockingResult{T}) where {T}
 end
 
 """
-    local_energy_estimator(res::KineticVQMCResultRows; kwargs...)
+    local_energy_estimator(res::KineticVQMCResult; resample_length, kwargs...)
 
 Return the local energy estimator from the result of a [`kinetic_vqmc`](@ref) run.
-Keyword arguments are passed to [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis). Returns a
-[`CombinedBlockingResult`](@ref).
+
+The local energies of each walker are resampled to `resample_length` evenly-spaced values
+(default: the number of samples of the first walker, see [`resample`](@ref)), and analysed
+with [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis), to which the
+remaining keyword arguments are passed. The errors of the walkers are combined assuming
+they are independent. Returns a [`CombinedBlockingResult`](@ref).
 """
 function local_energy_estimator(
     res::KineticVQMCResult;
