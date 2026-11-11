@@ -22,6 +22,14 @@ function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, add
     end
 
     val_n, grad_n = val_and_grad(ansatz, addr_n, params)
+    if iszero(val_n) || !isfinite(val_n)
+        # The walker never moves to an address with zero or non-finite amplitude, so this
+        # can only happen at the starting address.
+        error(
+            "Ansatz value at $addr_n is $val_n with params=$params. The starting address " *
+            "must have a finite, non-zero amplitude."
+        )
+    end
     diag = diagonal_element(column)
     local_energy_num = diag * val_n
 
@@ -35,22 +43,18 @@ function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, add
         prob_buffer[i] = residence_time_denom
     end
 
-    residence_time = abs(val_n) / residence_time_denom
-    if !isfinite(residence_time)
-        error("Infinite residence time at $params")
+    if !isfinite(residence_time_denom)
+        error("Non-finite ansatz values at neighbours of $addr_n with params=$params.")
+    elseif iszero(residence_time_denom)
+        error("All neighbours of $addr_n have zero amplitude with params=$params.")
     end
+
+    residence_time = abs(val_n) / residence_time_denom
     local_energy = local_energy_num / val_n
     gradient = grad_n / val_n
 
     chosen = pick_random_from_cumsum(prob_buffer)
-
-    if chosen < 0
-        error("Non-finite probabilities encountered at $params")
-    elseif chosen == 0
-        addr_m = addr_n
-    else
-        addr_m, _ = offdiags[chosen]
-    end
+    addr_m, _ = offdiags[chosen]
 
     return addr_m, residence_time, local_energy, gradient
 end
@@ -60,15 +64,11 @@ end
 
 Pick a random index from `cumsum`, which should contain a cumulative sum (see `Base.cumsum`)
 of values proportional to the probabilities with which the index should be picked.
+
+`last(cumsum)` must be finite and positive. Indices with zero probability are never picked.
 """
 @inline function pick_random_from_cumsum(cumsum)
-    if any(!isfinite, cumsum)
-        return 0
-    end
     chosen = rand() * last(cumsum)
-    if !isfinite(chosen)
-        return 0
-    end
     i = 1
     @inbounds while true
         if chosen < cumsum[i]
