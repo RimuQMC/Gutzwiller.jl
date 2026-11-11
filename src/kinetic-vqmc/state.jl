@@ -289,8 +289,7 @@ end
 """
     mean(res::KineticVQMCResult)
 
-Return the mean of the local energies, weighted by the residence times. The weighted mean
-is computed for each walker and averaged over the walkers.
+Return the mean of the local energies, weighted by the residence times.
 """
 function Statistics.mean(res::KineticVQMCResult)
     s = Folds.sum(res.states) do st
@@ -302,8 +301,7 @@ end
     var(res::KineticVQMCResult)
 
 Return the variance of the local energies, weighted by the residence times, i.e. an
-estimate of ``⟨E_L^2⟩ - ⟨E_L⟩^2`` over the distribution sampled by the walkers. The
-variance is computed for each walker and averaged over the walkers.
+estimate of ``⟨E_L^2⟩ - ⟨E_L⟩^2`` over the distribution sampled by the walkers.
 
 No bias correction is applied, as the residence times are not integer counts. To estimate
 the uncertainty of the mean, use [`local_energy_estimator`](@ref) instead.
