@@ -12,7 +12,9 @@ This function is used internally by [`kinetic_vqmc!`](@ref) and [`kinetic_vqmc`]
 
 [1]: [I. Sabzevari and S. Sharma, JCTC (2018), doi:10.1021/acs.jctc.8b00780](https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780)
 """
-function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, addr_n)
+function kinetic_sample!(
+    offdiags, prob_buffer, hamiltonian, adjoint, ansatz, params, addr_n
+)
     column = hamiltonian * addr_n
     resize!(offdiags, num_offdiagonals(column))
     resize!(prob_buffer, num_offdiagonals(column))
@@ -23,14 +25,14 @@ function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, add
 
     val_n, grad_n = val_and_grad(ansatz, addr_n, params)
     diag = diagonal_element(column)
-    local_energy_num = diag * val_n
+    offdiag_num = zero(val_n)
 
     residence_time_denom = 0.0
 
     for (i, (addr_m, offdiag)) in enumerate(offdiags)
         val_m = ansatz(addr_m, params)
         residence_time_denom += abs(val_m)
-        local_energy_num += offdiag * val_m
+        offdiag_num += offdiag * val_m
 
         prob_buffer[i] = residence_time_denom
     end
@@ -39,7 +41,8 @@ function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, add
     if !isfinite(residence_time)
         error("Infinite residence time at $params")
     end
-    local_energy = local_energy_num / val_n
+    offdiag_num = _symmetrize_offdiagonal(adjoint, ansatz, params, addr_n, offdiag_num)
+    local_energy = diag + offdiag_num / val_n
     gradient = grad_n / val_n
 
     chosen = pick_random_from_cumsum(prob_buffer)
@@ -53,6 +56,27 @@ function kinetic_sample!(offdiags, prob_buffer, hamiltonian, ansatz, params, add
     end
 
     return addr_m, residence_time, local_energy, gradient
+end
+
+"""
+    _symmetrize_offdiagonal(adjoint, ansatz, params, addr_n, offdiag_num)
+
+Return the off-diagonal part of the local energy numerator for the Hermitian part of the
+Hamiltonian, ``(H + H^†)/2``.
+
+`offdiag_num` is ``∑_m ⟨m|H|n⟩ ψ(m)``, computed from the column of the Hamiltonian at
+`addr_n`. For a Hermitian Hamiltonian (`adjoint === nothing`), this is returned unchanged.
+Otherwise, it is averaged with ``∑_m ⟨n|H|m⟩ ψ(m)``, computed from the column of `adjoint`.
+Using the Hermitian part keeps the expected local energy equal to the Rayleigh quotient,
+and makes the gradient estimator in [`val_and_grad`](@ref) valid.
+"""
+_symmetrize_offdiagonal(::Nothing, _, _, _, offdiag_num) = offdiag_num
+function _symmetrize_offdiagonal(adjoint, ansatz, params, addr_n, offdiag_num)
+    adjoint_num = zero(offdiag_num)
+    for (addr_m, offdiag) in offdiagonals(adjoint * addr_n)
+        adjoint_num += conj(offdiag) * ansatz(addr_m, params)
+    end
+    return (offdiag_num + adjoint_num) / 2
 end
 
 """
@@ -104,7 +128,8 @@ function kinetic_vqmc!(st::KineticVQMCWalkerState; steps=length(st))
 
     for k in first_step:last_step
         next_addr, residence_time, local_energy, grad = kinetic_sample!(
-            offdiag_buffer, prob_buffer, st.hamiltonian, st.ansatz, st.params, curr_addr
+            offdiag_buffer, prob_buffer, st.hamiltonian, st.adjoint, st.ansatz, st.params,
+            curr_addr,
         )
         addresses[k] = curr_addr
         residence_times[k] = residence_time
