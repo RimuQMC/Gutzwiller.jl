@@ -159,7 +159,7 @@ performs `equilibration` steps without recording any samples, so that the record
 are not biased by the choice of the starting address. Set `equilibration=0` to record all
 steps.
 
-The function returns a [`KineticVQMCResult`](@ref)s, which contains the states of all
+The function returns a [`KineticVQMCResult`](@ref), which contains the states of all
 walkers. To continue a run, use [`kinetic_vqmc!`](@ref).
 
 See [I. Sabzevari and S. Sharma, JCTC (2018), doi:10.1021/acs.jctc.8b00780](https://pubs.acs.org/doi/epdf/10.1021/acs.jctc.8b00780)
