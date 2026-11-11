@@ -79,4 +79,31 @@ using Test
             @test dot(sampled, vector_sq) ≈ 1 rtol=1e-4
         end
     end
+
+    @testset "equilibration" begin
+        H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
+        ansatz = GutzwillerAnsatz(H)
+        start = starting_address(H)
+
+        # HubbardReal1D has no diagonal transitions, so the walker moves at every step.
+        res = kinetic_vqmc(H, ansatz, 0.5; steps=100, walkers=2, equilibration=0)
+        @test all(st -> st.addresses[1] == start, res.states)
+        @test all(st -> length(st) == 100, res.states)
+
+        res = kinetic_vqmc(H, ansatz, 0.5; steps=100, walkers=2, equilibration=1)
+        @test all(st -> st.addresses[1] ≠ start, res.states)
+        @test all(st -> length(st) == 100, res.states)
+
+        # Continuation adds `steps` samples regardless of `equilibration`.
+        kinetic_vqmc!(res; steps=50, equilibration=20)
+        @test all(st -> length(st) == 150, res.states)
+
+        # Default equilibration is a tenth of the steps.
+        qmc = KineticVQMC(H, ansatz; samples=1000, walkers=2)
+        @test qmc.equilibration == 50
+        val_and_grad(qmc, 0.5)
+        @test all(st -> length(st) == 500, qmc.result.states)
+        qmc(0.5; equilibration=0)
+        @test all(st -> length(st) == 500, qmc.result.states)
+    end
 end

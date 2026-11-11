@@ -79,20 +79,30 @@ of values proportional to the probabilities with which the index should be picke
 end
 
 """
-    kinetic_vqmc!(st::KineticVQMCWalkerState; steps)
-    kinetic_vqmc!(sts::Vector{KineticVQMCWalkerState}; steps)
-    kinetic_vqmc!(res::KineticVQMCResult; steps)
+    kinetic_vqmc!(st::KineticVQMCWalkerState; steps, equilibration=0)
+    kinetic_vqmc!(sts::Vector{KineticVQMCWalkerState}; steps, equilibration=0)
+    kinetic_vqmc!(res::KineticVQMCResult; steps, equilibration=0)
 
 Continue a [`kinetic_vqmc`](@ref) computation, performing `steps` additional steps
 (default is the current number of samples in the input).
 
+Before that, `equilibration` steps are performed without recording any samples. The walkers
+continue from their previous addresses, so continuing an equilibrated run does not need
+additional equilibration.
+
 Returns its input.
 """
-function kinetic_vqmc!(st::KineticVQMCWalkerState; steps=length(st))
+function kinetic_vqmc!(st::KineticVQMCWalkerState; steps=length(st), equilibration=0)
     curr_addr = st.curr_address
     @unpack (
         residence_times, local_energies, grad_ratios, addresses, prob_buffer, offdiag_buffer
     ) = st
+
+    for _ in 1:Int(equilibration)
+        curr_addr, _ = kinetic_sample!(
+            offdiag_buffer, prob_buffer, st.hamiltonian, st.ansatz, st.params, curr_addr
+        )
+    end
 
     first_step = length(residence_times) + 1
     last_step = length(residence_times) + Int(steps)
@@ -117,28 +127,36 @@ function kinetic_vqmc!(st::KineticVQMCWalkerState; steps=length(st))
 end
 # Parallel version
 function kinetic_vqmc!(
-    states::Vector{<:KineticVQMCWalkerState}; steps=length(states[1]),
+    states::Vector{<:KineticVQMCWalkerState}; steps=length(states[1]), equilibration=0,
 )
     Threads.@threads for walker in eachindex(states)
-        kinetic_vqmc!(states[walker]; steps)
+        kinetic_vqmc!(states[walker]; steps, equilibration)
     end
     return states
 end
 # Continuation version
-function kinetic_vqmc!(res::KineticVQMCResult; steps=length(res.states[1]))
-    kinetic_vqmc!(res.states; steps)
+function kinetic_vqmc!(res::KineticVQMCResult; steps=length(res.states[1]), equilibration=0)
+    kinetic_vqmc!(res.states; steps, equilibration)
     return res
 end
 
 """
-    kinetic_vqmc(hamiltonian, ansatz, params; steps=1e6, walkers=Threads.nthreads() * 2)
+    kinetic_vqmc(
+        hamiltonian, ansatz, params;
+        samples=1e6,
+        walkers=Threads.nthreads() > 1 ? Threads.nthreads() * 2 : 1,
+        steps=round(Int, samples / walkers),
+        equilibration=Int(steps) ÷ 10,
+    )
 
-Use continuous time variational quantum Monte Carlo to sample a addresses and local energies
+Use continuous time variational quantum Monte Carlo to sample addresses and local energies
 from `hamiltonian` and `ansatz`. The `ansatz` must be indexable by addresses accepted by
 `hamiltonian` and must support `Base.keytype` and `Base.valtype`.
 
 The sampling samples `steps` steps per `walker`. The walkers are independent runs that run
-on separate threads.
+on separate threads. Each walker starts at `starting_address(hamiltonian)` and first performs
+`equilibration` steps without recording any samples, so that the recorded samples are not
+biased by the choice of the starting address. Set `equilibration=0` to record all steps.
 
 The function returns a [`KineticVQMCResult`](@ref)s, which contains the states of all
 walkers. To continue a run, use [`kinetic_vqmc!`](@ref).
@@ -153,8 +171,8 @@ function kinetic_vqmc(
     samples=1e6,
     walkers=Threads.nthreads() > 1 ? Threads.nthreads() * 2 : 1,
     steps=round(Int, samples / walkers),
-    )
-
+    equilibration=Int(steps) ÷ 10,
+)
     if walkers > 1
         state = [KineticVQMCWalkerState(hamiltonian, ansatz, params) for _ in 1:walkers]
         states = state
@@ -162,7 +180,7 @@ function kinetic_vqmc(
         state = KineticVQMCWalkerState(hamiltonian, ansatz, params)
         states = [state]
     end
-    kinetic_vqmc!(state; steps)
+    kinetic_vqmc!(state; steps, equilibration)
 
     return KineticVQMCResult(states)
 end

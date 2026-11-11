@@ -4,7 +4,16 @@
         samples=1e6,
         walkers=Threads.nthreads() > 1 ? Threads.nthreads() * 2 : 1,
         steps=round(Int, samples / walkers),
+        equilibration=steps ÷ 10,
     )
+
+Wrapper around [`kinetic_vqmc`](@ref) that can be called with parameters to compute the
+energy, or used with [`val_and_grad`](@ref) to also compute its gradient with respect to the
+parameters.
+
+Each call performs `equilibration` steps per walker without recording samples, followed by
+`steps` recorded steps per walker. The walkers start from the addresses where the previous
+call ended, so the equilibration only needs to account for the change in parameters.
 
 Usage
 
@@ -47,6 +56,7 @@ struct KineticVQMC{N,T,H,A<:AbstractAnsatz{<:Any,T,N},R}
     ansatz::A
     steps::Int
     walkers::Int
+    equilibration::Int
     result::R
 end
 function KineticVQMC(
@@ -54,12 +64,13 @@ function KineticVQMC(
     samples=1e6,
     walkers=Threads.nthreads() > 1 ? Threads.nthreads() * 2 : 1,
     steps=round(Int, samples / walkers),
+    equilibration=steps ÷ 10,
 ) where {H,T,N,A<:AbstractAnsatz{<:Any,T,N}}
     params = zeros(SVector{N,T})
     result = KineticVQMCResult(
         [KineticVQMCWalkerState(hamiltonian, ansatz, params) for _ in 1:walkers]
     )
-    return KineticVQMC(hamiltonian, ansatz, steps, walkers, result)
+    return KineticVQMC(hamiltonian, ansatz, steps, walkers, equilibration, result)
 end
 
 function Base.show(io::IO, ke::KineticVQMC)
@@ -68,6 +79,7 @@ function Base.show(io::IO, ke::KineticVQMC)
     println(io, "  ", ke.ansatz, ";")
     println(io, "  steps=", ke.steps, ",")
     println(io, "  walkers=", ke.walkers, ",")
+    println(io, "  equilibration=", ke.equilibration, ",")
     print(io, ")")
 end
 
@@ -81,32 +93,35 @@ end
 function (ke::KineticVQMC)(
     params;
     samples=ke.steps * ke.walkers, steps=samples ÷ ke.walkers,
+    equilibration=ke.equilibration,
 )
     _reset!(ke, params)
-    res = kinetic_vqmc!(ke.result; steps)
+    res = kinetic_vqmc!(ke.result; steps, equilibration)
     return mean(res)
 end
 
 function val_and_grad(
     ke::KineticVQMC, params;
     samples=ke.steps * ke.walkers, steps=samples ÷ ke.walkers,
+    equilibration=ke.equilibration,
 )
     _reset!(ke, params)
-    res = kinetic_vqmc!(ke.result; steps)
+    res = kinetic_vqmc!(ke.result; steps, equilibration)
     return val_and_grad(res)
 end
 function val_err_and_grad(
     ke::KineticVQMC, params;
     samples=ke.steps * ke.walkers, steps=samples ÷ ke.walkers,
+    equilibration=ke.equilibration,
 )
     _reset!(ke, params)
-    res = kinetic_vqmc!(ke.result; steps)
+    res = kinetic_vqmc!(ke.result; steps, equilibration)
     return val_err_and_grad(res)
 end
 
 function (ke::KineticVQMC)(F, G, params)
     _reset!(ke, params)
-    res = kinetic_vqmc!(ke.result; steps=ke.steps)
+    res = kinetic_vqmc!(ke.result; steps=ke.steps, ke.equilibration)
     if !isnothing(G)
         val, grad = val_and_grad(res)
         G .= grad
