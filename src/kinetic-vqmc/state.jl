@@ -49,9 +49,6 @@ Return the energy estimate and its gradient w.r.t. the parameters from the sampl
 residence times. The gradient is estimated as ``2⟨O (E_L - E)⟩``, where ``O`` is the
 gradient of the ansatz divided by its value, and ``E_L`` is the local energy.
 
-For a `KineticVQMCResult`, the estimates are computed for each walker and averaged over the
-walkers.
-
 See also [`val_err_and_grad`](@ref), [`local_energy_estimator`](@ref).
 """
 function val_and_grad(res::KineticVQMCWalkerState)
@@ -290,7 +287,7 @@ Return the local energy estimator from the result of a [`kinetic_vqmc`](@ref) ru
 The local energies of each walker are resampled to `resample_length` evenly-spaced values
 (default: the number of samples of the first walker, see [`resample`](@ref)), and analysed
 with [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis), to which the
-remaining keyword arguments are passed. The results of the walkers are combined assuming
+remaining keyword arguments are passed. The errors of the walkers are combined assuming
 they are independent. Returns a [`CombinedBlockingResult`](@ref).
 """
 function local_energy_estimator(
