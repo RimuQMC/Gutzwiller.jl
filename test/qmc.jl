@@ -160,4 +160,27 @@ Rimu.LOStructure(::Type{<:NoAdjoint}) = AdjointUnknown()
         qmc(0.5; equilibration=0)
         @test all(st -> length(st) == 500, qmc.result.states)
     end
+
+    @testset "pooled estimators" begin
+        H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
+        res = kinetic_vqmc(H, GutzwillerAnsatz(H), 0.5; steps=1000, walkers=4)
+
+        # Pooling all samples into a single walker must give the same estimates.
+        times = reduce(vcat, [st.residence_times for st in res.states])
+        energies = reduce(vcat, [st.local_energies for st in res.states])
+        grad_ratios = reduce(vcat, [st.grad_ratios for st in res.states])
+        val = sum(times .* energies) / sum(times)
+        grad = 2 * sum(times .* grad_ratios .* (energies .- val)) / sum(times)
+
+        @test mean(res) ≈ val
+        @test var(res) ≈ sum(times .* (energies .- val) .^ 2) / sum(times)
+        @test all(val_and_grad(res) .≈ (val, grad))
+
+        v, e, g = val_err_and_grad(res)
+        est = local_energy_estimator(res)
+        @test v ≈ val
+        @test g ≈ grad
+        @test e == est.err
+        @test est.mean ≈ val
+    end
 end

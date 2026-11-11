@@ -157,35 +157,46 @@ function Base.size(rows::KineticVQMCResultRows)
 end
 
 ###
-### Blocking utils
+### Pooled estimators
 ###
-function val_and_grad(res::KineticVQMCResult{<:Any,T}) where {T}
-    vals = zero(T)
-    grads = zero(eltype(res.states[1].grad_ratios))
-    walkers = length(res.states)
+"""
+    _time_weighted_sum(f, res::KineticVQMCResult)
 
-    for w in 1:walkers
-        v, g = val_and_grad(res.states[w])
-        vals += v
-        grads += g
+Compute ``∑_i t_i f(E_i, O_i)`` over the samples of all walkers, where ``t_i`` are the
+residence times, ``E_i`` the local energies and ``O_i`` the gradient ratios.
+
+The estimators of a [`KineticVQMCResult`](@ref) (`mean`, `var`, [`val_and_grad`](@ref),
+[`val_err_and_grad`](@ref) and the mean of [`local_energy_estimator`](@ref)) pool the
+samples of all walkers using this function, i.e. they are ratios of sums over all samples.
+Computing the ratios for each walker and averaging them over the walkers instead would
+leave a bias that decreases with the number of steps per walker, but not with the number of
+walkers.
+"""
+function _time_weighted_sum(f, res::KineticVQMCResult)
+    return Folds.sum(res.states) do st
+        times = st.residence_times
+        energies = st.local_energies
+        grad_ratios = st.grad_ratios
+        sum(eachindex(times)) do i
+            times[i] * f(energies[i], grad_ratios[i])
+        end
     end
-
-    return vals / walkers, grads ./ walkers
 end
-function val_err_and_grad(res::KineticVQMCResult{<:Any,T}) where {T}
-    vals = zero(T)
-    errs = zero(T)
-    grads = zero(eltype(res.states[1].grad_ratios))
-    walkers = length(res.states)
 
-    for w in 1:walkers
-        v, e, g = val_err_and_grad(res.states[w])
-        errs += e^2
-        vals += v
-        grads += g
-    end
+_total_time(res::KineticVQMCResult) = _time_weighted_sum((_, _) -> 1, res)
 
-    return vals / walkers, √mean(errs) / walkers, grads ./ walkers
+function val_and_grad(res::KineticVQMCResult)
+    total_time = _total_time(res)
+    val = _time_weighted_sum((e, _) -> e, res) / total_time
+    grad = 2 * _time_weighted_sum((e, o) -> o * (e - val), res) / total_time
+
+    return val, grad
+end
+function val_err_and_grad(res::KineticVQMCResult)
+    val, grad = val_and_grad(res)
+    err = local_energy_estimator(res).err
+
+    return val, err, grad
 end
 
 """
@@ -292,8 +303,6 @@ function local_energy_estimator(
     resample_length=length(first(res.states)),
     kwargs...
 )
-    μ = 0.0
-    v = 0.0
     results = Folds.map(res.states) do st
         blocking_analysis(
             resample(st.residence_times, st.local_energies; len=resample_length);
@@ -302,7 +311,7 @@ function local_energy_estimator(
     end
     n = length(results)
     return CombinedBlockingResult(
-        mean(r.mean for r in results),
+        mean(res),
         √(mean(r.err^2 for r in results) / n),
         √(mean(r.err_err^2 for r in results) / n),
         results,
@@ -310,16 +319,11 @@ function local_energy_estimator(
 end
 
 function Statistics.mean(res::KineticVQMCResult)
-    s = Folds.sum(res.states) do st
-        mean(st.local_energies, FrequencyWeights(st.residence_times))
-    end
-    return s / length(res.states)
+    return _time_weighted_sum((e, _) -> e, res) / _total_time(res)
 end
 function Statistics.var(res::KineticVQMCResult)
-    s = Folds.sum(res.states) do st
-        var(st.local_energies, FrequencyWeights(st.residence_times))
-    end
-    return s / length(res.states)
+    μ = mean(res)
+    return _time_weighted_sum((e, _) -> abs2(e - μ), res) / _total_time(res)
 end
 
 ###
