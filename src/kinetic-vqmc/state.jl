@@ -89,7 +89,8 @@ end
 
 Like [`val_and_grad`](@ref), but also return the standard error of the energy, computed
 with a blocking analysis of the resampled local energies (see [`resample`](@ref)). For a
-`KineticVQMCResult`, the errors of the walkers are combined assuming they are independent.
+[`KineticVQMCResult`](@ref), the errors of the walkers are combined assuming they are
+independent.
 """
 function val_err_and_grad(res::KineticVQMCWalkerState)
     weights = FrequencyWeights(res.residence_times)
