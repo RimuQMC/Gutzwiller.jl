@@ -69,9 +69,12 @@ end
     val_and_grad(res::KineticVQMCResult)
 
 Return the energy estimate and its gradient w.r.t. the parameters from the samples of a
-[`kinetic_vqmc`](@ref) run. The energy is the mean of the local energies weighted by the
-residence times. The gradient is estimated as ``2⟨O (E_L - E)⟩``, where ``O`` is the
-gradient of the ansatz divided by its value, and ``E_L`` is the local energy.
+[`kinetic_vqmc`](@ref) run. The energy ``E`` is the mean of the local energies weighted by
+the residence times. The gradient is estimated as ``2⟨O (E_L - E)⟩``, where ``O`` is the
+gradient of the ansatz divided by its value, ``E_L`` is the local energy, and ``⟨⋅⟩`` is
+the mean weighted by the residence times.
+
+For a `KineticVQMCResult`, the estimates of the walkers are averaged.
 
 See also [`val_err_and_grad`](@ref), [`local_energy_estimator`](@ref).
 """
@@ -111,8 +114,10 @@ end
 The result of [`kinetic_vqmc`](@ref). Holds the state of each walker. Use
 [`local_energy_estimator`](@ref)`(result)` to get an estimate of the local energy, or
 [`PDVec`](@extref Rimu Rimu.DictVectors.PDVec)`(result)` to materialize the sampled
-distribution. The value at each address is the total residence time spent there, which is
-proportional to the square of the ansatz. The vector is normalized to have unit 2-norm.
+distribution. The values are proportional to the total residence time spent at each
+address, which in expectation is proportional to the square of the ansatz (not to the
+ansatz itself). The vector is normalized to have unit 2-norm. `DVec(result)` works the
+same way.
 
 Supports the [Tables.jl](https://github.com/JuliaData/Tables.jl/) interface and a such can
 be converted to a `DataFrame` or saved to file with
