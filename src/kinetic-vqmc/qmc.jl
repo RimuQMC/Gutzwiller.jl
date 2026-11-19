@@ -1,11 +1,24 @@
 """
-    kinetic_sample!(offdiag_buffer, prob_buffer, hamiltonian, ansatz, curr_addr)
+    kinetic_sample!(
+        offdiag_buffer, prob_buffer, hamiltonian, adjoint, ansatz, params, curr_addr
+    )
 
-Use the `hamiltonian` and `curr_addr` to sample a new address from `ansatz`, while also
-computing the local energy contribution of `curr_addr`. Return a tuple of the new address,
-the residence time of the current address, and the local energy.
+Use the `hamiltonian` and `curr_addr` to sample a new address from `ansatz` with parameters
+`params`, while also computing the local energy and the gradient ratio of `curr_addr`.
 
-`prob_buffer` is a `Vector{Float64}` used as temporary storage.
+`adjoint` is `nothing` for a Hermitian `hamiltonian`, and its adjoint otherwise. In the
+latter case, the local energy is computed for the Hermitian part of the `hamiltonian`
+(see [`_symmetrize_offdiagonal`](@ref)).
+
+Return a tuple of
+
+* the new address,
+* the residence time of `curr_addr`,
+* the local energy of `curr_addr`,
+* the gradient of the ansatz w.r.t. `params` at `curr_addr`, divided by its value.
+
+`offdiag_buffer` is a `Vector{Pair{A,T}}` and `prob_buffer` is a `Vector{T}`, both used as
+temporary storage.
 
 The algorithm for sampling is taken from [1].
 This function is used internally by [`kinetic_vqmc!`](@ref) and [`kinetic_vqmc`](@ref).

@@ -161,21 +161,69 @@ Rimu.LOStructure(::Type{<:NoAdjoint}) = AdjointUnknown()
         @test all(st -> length(st) == 500, qmc.result.states)
     end
 
+    @testset "pooled estimators" begin
+        H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
+        res = kinetic_vqmc(H, GutzwillerAnsatz(H), 0.5; steps=1000, walkers=4)
+
+        # Pooling all samples into a single walker must give the same estimates.
+        function pooled_reference(res)
+            states = res.states
+            times = reduce(vcat, [st.residence_times for st in states])
+            energies = reduce(vcat, [st.local_energies for st in states])
+            grad_ratios = reduce(
+                vcat, [st.grad_ratios[eachindex(st.residence_times)] for st in states]
+            )
+            val = sum(times .* energies) / sum(times)
+            grad = 2 * sum(times .* grad_ratios .* (energies .- val)) / sum(times)
+            var = sum(times .* (energies .- val) .^ 2) / sum(times)
+            return val, grad, var
+        end
+
+        val, grad, variance = pooled_reference(res)
+        @test mean(res) ≈ val
+        @test var(res) ≈ variance
+        @test all(val_and_grad(res) .≈ (val, grad))
+
+        v, e, g = val_err_and_grad(res)
+        est = local_energy_estimator(res)
+        @test v ≈ val
+        @test g ≈ grad
+        @test e == est.err
+        @test est.mean ≈ val
+
+        # Walkers with different numbers of samples, where pooling and averaging over
+        # walkers differ the most.
+        kinetic_vqmc!(res.states[1]; steps=3000)
+        val, grad, variance = pooled_reference(res)
+        @test mean(res) ≈ val
+        @test var(res) ≈ variance
+        @test all(val_and_grad(res) .≈ (val, grad))
+
+        # Walkers without samples are skipped.
+        empty!(res.states[2])
+        val, grad, variance = pooled_reference(res)
+        @test mean(res) ≈ val
+        @test all(val_and_grad(res) .≈ (val, grad))
+
+        foreach(empty!, res.states)
+        @test_throws ArgumentError mean(res)
+    end
+
     @testset "walker state" begin
         H = HubbardReal1D(BoseFS(1, 1, 1, 1, 1); u=6.0)
-        res = kinetic_vqmc(H, GutzwillerAnsatz(H), 0.5; samples=1000, walkers=1)
-        st = only(res.states)
-
-        times = st.residence_times
-        energies = st.local_energies
-        μ = sum(times .* energies) / sum(times)
-        @test mean(res) ≈ μ
-        @test var(res) ≈ sum(times .* (energies .- μ) .^ 2) / sum(times)
+        res = kinetic_vqmc(H, GutzwillerAnsatz(H), 0.5; samples=1000, walkers=2)
+        st = first(res.states)
+        @test length(st.grad_ratios) > 0
 
         empty!(st)
         @test length(st.addresses) == 0
         @test length(st.residence_times) == 0
         @test length(st.local_energies) == 0
         @test length(st.grad_ratios) == 0
+
+        # The emptied walker is skipped by the estimators, and continues consistently.
+        @test mean(res) ≈ mean(Gutzwiller.KineticVQMCResult([last(res.states)]))
+        kinetic_vqmc!(st; steps=100)
+        @test length(st.grad_ratios) == length(st.residence_times) == 100
     end
 end
