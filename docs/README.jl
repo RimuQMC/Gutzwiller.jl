@@ -121,16 +121,19 @@ qmc = KineticVQMC(H, ansatz; samples=1e4)
 qmc([1.0]), le([1.0])
 
 # Because the output of this procedure is noisy, optimizing it with Optim.jl will not work.
-# However, we can use a stochastic gradient descent (in this case
-# [AMSGrad](https://paperswithcode.com/method/amsgrad)).
+# Instead, we use
+# [stochastic reconfiguration](https://doi.org/10.1103/PhysRevB.64.024512), which
+# estimates the gradient together with the metric tensor of the ansatz from the same
+# samples, and uses the metric to choose well-scaled steps.
 
-grad_result = amsgrad(qmc, [1.0])
+sr_result = stochastic_reconfiguration(qmc, [1.0])
 
-# While `amsgrad` attempts to determine if the optimization converged, it will generally not
-# detect convergence due to the noise in the QMC evaluation. The best way to determine
-# convergence is to plot the results. `grad_result` can be converted to a `DataFrame`.
+# While `stochastic_reconfiguration` attempts to determine if the optimization converged,
+# it will generally not detect convergence due to the noise in the QMC evaluation. The best
+# way to determine convergence is to plot the results. `sr_result` can be converted to a
+# `DataFrame`.
 
-grad_df = DataFrame(grad_result)
+sr_df = DataFrame(sr_result)
 
 # To plot it, we can either work with the `DataFrame` or access the fields directly
 
@@ -139,20 +142,20 @@ begin
     ax1 = Axis(fig[1, 1]; xlabel=L"i", ylabel=L"E_v")
     ax2 = Axis(fig[2, 1]; xlabel=L"i", ylabel=L"p")
 
-    lines!(ax1, grad_df.iter, grad_df.value)
-    lines!(ax2, first.(grad_result.param))
+    lines!(ax1, sr_df.iter, sr_df.value)
+    lines!(ax2, first.(sr_result.param))
     fig
 end
 
-# We see from the plot that the value of the energy is fluctiating around what appears to be
+# We see from the plot that the value of the energy is fluctuating around what appears to be
 # the minimum. While the parameter estimate here is probably good enough for importance
 # sampling, we can refine the result by creating a new `KineticVQMC` structure with
 # increased samples and use it to refine the result. Here, we can pass the previous result
-# `grad_result` in place of the initial parameters, which will continue the computation
-# where the previous one left off. Alternatively, this can be achieved by passing the `first_moment_init` and `second_moment_init` arguments to `amsgrad`.
+# `sr_result` in place of the initial parameters, which will continue the computation
+# where the previous one left off.
 
 qmc2 = KineticVQMC(H, ansatz; samples=1e6)
-grad_result2 = amsgrad(qmc2, grad_result)
+sr_result2 = stochastic_reconfiguration(qmc2, sr_result; maxiter=20)
 
 # Now, let's plot the refined result next to the minimum found by Optim.jl
 
@@ -161,9 +164,9 @@ begin
     ax1 = Axis(fig[1, 1]; xlabel=L"i", ylabel=L"E_v")
     ax2 = Axis(fig[2, 1]; xlabel=L"i", ylabel=L"p")
 
-    lines!(ax1, grad_result2.value)
+    lines!(ax1, sr_result2.value)
     hlines!(ax1, [opt_lbgfs.minimum]; linestyle=:dot)
-    lines!(ax2, first.(grad_result2.param))
+    lines!(ax2, first.(sr_result2.param))
     hlines!(ax2, opt_lbgfs.minimizer; linestyle=:dot)
     fig
 end
@@ -174,7 +177,7 @@ end
 # sampling. Gutzwiller.jl provides `AnsatzSampling`, which is similar to
 # `GutzwillerSampling` from Rimu, but can be used with different ansatze.
 
-p = grad_result.param[end]
+p = final_params(sr_result2)
 G = AnsatzSampling(H, ansatz, p)
 
 # This can now be used with FCIQMC. Let's compare the importance sampled time series to a

@@ -2,6 +2,7 @@ module Gutzwiller
 
 using DataFrames
 using Folds
+using LinearAlgebra
 using Measurements
 using ProgressMeter
 using Parameters
@@ -46,6 +47,8 @@ include("kinetic-vqmc/wrapper.jl")
 
 export gradient_descent, amsgrad
 include("amsgrad.jl")
+export stochastic_reconfiguration, val_err_grad_and_metric, final_params
+include("stochastic_reconfiguration.jl")
 
 
 end
