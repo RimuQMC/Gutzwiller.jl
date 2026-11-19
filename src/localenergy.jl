@@ -2,7 +2,7 @@
     LocalEnergyEvaluator(hamiltonian, ansatz; basis=build_basis(hamiltonian))
 
 Wrapper over `hamiltonian` and `ansatz` that can be used to efficiently compute local
-energies. Stores the basis, which can be passed throught the `basis` keyword argument.
+energies. Stores the basis, which can be passed through the `basis` keyword argument.
 
 Instances of `LocalEnergyEvaluator` can be called with parameters to return a local energy.
 Alternatively, `val_and_grad` can be used to compute the value and gradient (with respect to
