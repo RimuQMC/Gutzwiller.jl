@@ -58,12 +58,28 @@ Base.valtype(::KineticVQMCWalkerState{<:Any,T}) where {T} = T
 function Base.empty!(st::KineticVQMCWalkerState)
     empty!(st.residence_times)
     empty!(st.local_energies)
+    empty!(st.grad_ratios)
     empty!(st.addresses)
     return st
 end
 function Base.length(st::KineticVQMCWalkerState)
     return length(st.addresses)
 end
+"""
+    val_and_grad(res::KineticVQMCWalkerState)
+    val_and_grad(res::KineticVQMCResult)
+
+Return the energy estimate and its gradient w.r.t. the parameters from the samples of a
+[`kinetic_vqmc`](@ref) run. The energy ``E`` is the mean of the local energies weighted by
+the residence times. The gradient is estimated as ``2⟨O (E_L - E)⟩``, where ``O`` is the
+gradient of the ansatz divided by its value, ``E_L`` is the local energy, and ``⟨⋅⟩`` is
+the mean weighted by the residence times.
+
+For a `KineticVQMCResult`, the samples of all walkers are pooled, i.e. the means are taken
+over all samples at once.
+
+See also [`val_err_and_grad`](@ref), [`local_energy_estimator`](@ref).
+"""
 function val_and_grad(res::KineticVQMCWalkerState)
     weights = FrequencyWeights(res.residence_times)
     val = mean(res.local_energies, weights)
@@ -72,6 +88,14 @@ function val_and_grad(res::KineticVQMCWalkerState)
 
     return val, grad
 end
+"""
+    val_err_and_grad(res::KineticVQMCWalkerState)
+    val_err_and_grad(res::KineticVQMCResult)
+
+Like [`val_and_grad`](@ref), but also return the standard error of the energy, computed
+with a blocking analysis of the resampled local energies (see [`resample`](@ref)). For a
+[`KineticVQMCResult`](@ref), the error is that of [`local_energy_estimator`](@ref).
+"""
 function val_err_and_grad(res::KineticVQMCWalkerState)
     weights = FrequencyWeights(res.residence_times)
 
@@ -90,7 +114,11 @@ end
 
 The result of [`kinetic_vqmc`](@ref). Holds the state of each walker. Use
 [`local_energy_estimator`](@ref)`(result)` to get an estimate of the local energy, or
-[`PDVec`](@extref Rimu Rimu.DictVectors.PDVec)`(result)` to materialize the sampled vector.
+[`PDVec`](@extref Rimu Rimu.DictVectors.PDVec)`(result)` to materialize the sampled
+distribution. The values are proportional to the total residence time spent at each
+address, which in expectation is proportional to the square of the ansatz (not to the
+ansatz itself). The vector is normalized to have unit 2-norm. `DVec(result)` works the
+same way.
 
 Supports the [Tables.jl](https://github.com/JuliaData/Tables.jl/) interface and a such can
 be converted to a `DataFrame` or saved to file with
@@ -157,51 +185,69 @@ function Base.size(rows::KineticVQMCResultRows)
 end
 
 ###
-### Blocking utils
+### Pooled estimators
 ###
-function val_and_grad(res::KineticVQMCResult{<:Any,T}) where {T}
-    vals = zero(T)
-    grads = zero(eltype(res.states[1].grad_ratios))
-    walkers = length(res.states)
+"""
+    _time_weighted_sum(f, res::KineticVQMCResult)
 
-    for w in 1:walkers
-        v, g = val_and_grad(res.states[w])
-        vals += v
-        grads += g
+Compute ``∑_i t_i f(E_i, O_i)`` over the samples of all walkers, where ``t_i`` are the
+residence times, ``E_i`` the local energies and ``O_i`` the gradient ratios.
+
+The estimators of a [`KineticVQMCResult`](@ref) (`mean`, `var`, [`val_and_grad`](@ref),
+[`val_err_and_grad`](@ref) and the mean of [`local_energy_estimator`](@ref)) pool the
+samples of all walkers using this function, i.e. they are ratios of sums over all samples.
+Computing the ratios for each walker and averaging them over the walkers instead would
+leave a bias that decreases with the number of steps per walker, but not with the number of
+walkers.
+"""
+function _time_weighted_sum(f, res::KineticVQMCResult)
+    # Walkers without samples contribute nothing; summing over them would throw.
+    states = filter(st -> length(st.residence_times) > 0, res.states)
+    if isempty(states)
+        throw(ArgumentError("the result does not contain any samples"))
     end
-
-    return vals / walkers, grads ./ walkers
+    return Folds.sum(states) do st
+        times = st.residence_times
+        energies = st.local_energies
+        grad_ratios = st.grad_ratios
+        sum(eachindex(times)) do i
+            times[i] * f(energies[i], grad_ratios[i])
+        end
+    end
 end
-function val_err_and_grad(res::KineticVQMCResult{<:Any,T}) where {T}
-    vals = zero(T)
-    errs = zero(T)
-    grads = zero(eltype(res.states[1].grad_ratios))
-    walkers = length(res.states)
 
-    for w in 1:walkers
-        v, e, g = val_err_and_grad(res.states[w])
-        errs += e^2
-        vals += v
-        grads += g
-    end
+_total_time(res::KineticVQMCResult) = _time_weighted_sum((_, _) -> 1, res)
 
-    return vals / walkers, √mean(errs) / walkers, grads ./ walkers
+function val_and_grad(res::KineticVQMCResult)
+    total_time = _total_time(res)
+    val = _time_weighted_sum((e, _) -> e, res) / total_time
+    grad = 2 * _time_weighted_sum((e, o) -> o * (e - val), res) / total_time
+
+    return val, grad
+end
+function val_err_and_grad(res::KineticVQMCResult)
+    val, grad = val_and_grad(res)
+    err = local_energy_estimator(res).err
+
+    return val, err, grad
 end
 
 """
-    resample(residence_times, values; len=length(values))
+    resample(residence_times, values; len=length(residence_times))
 
-Resample unevenly spaced timeseries data into a vector of `len` evenly-spaced values.  Here,
+Resample unevenly spaced timeseries data into a vector of `len` evenly-spaced values. Here,
 the time `values[i]` occupies is equal to `residence_times[i]`. The resampling is done in
 such a way that
 
 ```julia
-    mean(resample(xs, ys; len)) == mean(xs, FrequencyWeights(ys))
+μ = mean(values, FrequencyWeights(residence_times))
+mean(resample(residence_times, values; len)) ≈ μ
 ```
 
 independent of `len`.
 
-Using this function allows us to use [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis) on the resampled data.
+Using this function allows us to use
+[`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis) on the resampled data.
 
 See also: [`resample!`](@ref).
 """
@@ -281,19 +327,22 @@ function Base.show(io::IO, res::CombinedBlockingResult{T}) where {T}
 end
 
 """
-    local_energy_estimator(res::KineticVQMCResultRows; kwargs...)
+    local_energy_estimator(res::KineticVQMCResult; resample_length, kwargs...)
 
 Return the local energy estimator from the result of a [`kinetic_vqmc`](@ref) run.
-Keyword arguments are passed to [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis). Returns a
-[`CombinedBlockingResult`](@ref).
+
+The local energies of each walker are resampled to `resample_length` evenly-spaced values
+(default: the number of samples of the first walker, see [`resample`](@ref)), and analysed
+with [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis), to which the
+remaining keyword arguments are passed. The errors of the walkers are combined assuming
+they are independent. The reported mean is the mean of the local energies weighted by the
+residence times and pooled over all walkers. Returns a [`CombinedBlockingResult`](@ref).
 """
 function local_energy_estimator(
     res::KineticVQMCResult;
     resample_length=length(first(res.states)),
     kwargs...
 )
-    μ = 0.0
-    v = 0.0
     results = Folds.map(res.states) do st
         blocking_analysis(
             resample(st.residence_times, st.local_energies; len=resample_length);
@@ -302,24 +351,36 @@ function local_energy_estimator(
     end
     n = length(results)
     return CombinedBlockingResult(
-        mean(r.mean for r in results),
+        mean(res),
         √(mean(r.err^2 for r in results) / n),
         √(mean(r.err_err^2 for r in results) / n),
         results,
     )
 end
 
+"""
+    mean(res::KineticVQMCResult)
+
+Return the mean of the local energies, weighted by the residence times and pooled over the
+samples of all walkers.
+"""
 function Statistics.mean(res::KineticVQMCResult)
-    s = Folds.sum(res.states) do st
-        mean(st.local_energies, FrequencyWeights(st.residence_times))
-    end
-    return s / length(res.states)
+    return _time_weighted_sum((e, _) -> e, res) / _total_time(res)
 end
+
+"""
+    var(res::KineticVQMCResult)
+
+Return the variance of the local energies, weighted by the residence times, i.e. an
+estimate of ``⟨E_L^2⟩ - ⟨E_L⟩^2`` over the distribution sampled by the walkers. The samples
+of all walkers are pooled.
+
+No bias correction is applied, as the residence times are not integer counts. To estimate
+the uncertainty of the mean, use [`local_energy_estimator`](@ref) instead.
+"""
 function Statistics.var(res::KineticVQMCResult)
-    s = Folds.sum(res.states) do st
-        var(st.local_energies, FrequencyWeights(st.residence_times))
-    end
-    return s / length(res.states)
+    μ = mean(res)
+    return _time_weighted_sum((e, _) -> abs2(e - μ), res) / _total_time(res)
 end
 
 ###
