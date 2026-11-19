@@ -166,14 +166,22 @@ Rimu.LOStructure(::Type{<:NoAdjoint}) = AdjointUnknown()
         res = kinetic_vqmc(H, GutzwillerAnsatz(H), 0.5; steps=1000, walkers=4)
 
         # Pooling all samples into a single walker must give the same estimates.
-        times = reduce(vcat, [st.residence_times for st in res.states])
-        energies = reduce(vcat, [st.local_energies for st in res.states])
-        grad_ratios = reduce(vcat, [st.grad_ratios for st in res.states])
-        val = sum(times .* energies) / sum(times)
-        grad = 2 * sum(times .* grad_ratios .* (energies .- val)) / sum(times)
+        function pooled_reference(res)
+            states = res.states
+            times = reduce(vcat, [st.residence_times for st in states])
+            energies = reduce(vcat, [st.local_energies for st in states])
+            grad_ratios = reduce(
+                vcat, [st.grad_ratios[eachindex(st.residence_times)] for st in states]
+            )
+            val = sum(times .* energies) / sum(times)
+            grad = 2 * sum(times .* grad_ratios .* (energies .- val)) / sum(times)
+            var = sum(times .* (energies .- val) .^ 2) / sum(times)
+            return val, grad, var
+        end
 
+        val, grad, variance = pooled_reference(res)
         @test mean(res) ≈ val
-        @test var(res) ≈ sum(times .* (energies .- val) .^ 2) / sum(times)
+        @test var(res) ≈ variance
         @test all(val_and_grad(res) .≈ (val, grad))
 
         v, e, g = val_err_and_grad(res)
@@ -182,5 +190,22 @@ Rimu.LOStructure(::Type{<:NoAdjoint}) = AdjointUnknown()
         @test g ≈ grad
         @test e == est.err
         @test est.mean ≈ val
+
+        # Walkers with different numbers of samples, where pooling and averaging over
+        # walkers differ the most.
+        kinetic_vqmc!(res.states[1]; steps=3000)
+        val, grad, variance = pooled_reference(res)
+        @test mean(res) ≈ val
+        @test var(res) ≈ variance
+        @test all(val_and_grad(res) .≈ (val, grad))
+
+        # Walkers without samples are skipped.
+        empty!(res.states[2])
+        val, grad, variance = pooled_reference(res)
+        @test mean(res) ≈ val
+        @test all(val_and_grad(res) .≈ (val, grad))
+
+        foreach(empty!, res.states)
+        @test_throws ArgumentError mean(res)
     end
 end

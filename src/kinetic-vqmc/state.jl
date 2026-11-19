@@ -74,7 +74,8 @@ the residence times. The gradient is estimated as ``2⟨O (E_L - E)⟩``, where 
 gradient of the ansatz divided by its value, ``E_L`` is the local energy, and ``⟨⋅⟩`` is
 the mean weighted by the residence times.
 
-For a `KineticVQMCResult`, the estimates of the walkers are averaged.
+For a `KineticVQMCResult`, the samples of all walkers are pooled, i.e. the means are taken
+over all samples at once.
 
 See also [`val_err_and_grad`](@ref), [`local_energy_estimator`](@ref).
 """
@@ -92,8 +93,7 @@ end
 
 Like [`val_and_grad`](@ref), but also return the standard error of the energy, computed
 with a blocking analysis of the resampled local energies (see [`resample`](@ref)). For a
-[`KineticVQMCResult`](@ref), the errors of the walkers are combined assuming they are
-independent.
+[`KineticVQMCResult`](@ref), the error is that of [`local_energy_estimator`](@ref).
 """
 function val_err_and_grad(res::KineticVQMCWalkerState)
     weights = FrequencyWeights(res.residence_times)
@@ -200,7 +200,12 @@ leave a bias that decreases with the number of steps per walker, but not with th
 walkers.
 """
 function _time_weighted_sum(f, res::KineticVQMCResult)
-    return Folds.sum(res.states) do st
+    # Walkers without samples contribute nothing; summing over them would throw.
+    states = filter(st -> length(st.residence_times) > 0, res.states)
+    if isempty(states)
+        throw(ArgumentError("the result does not contain any samples"))
+    end
+    return Folds.sum(states) do st
         times = st.residence_times
         energies = st.local_energies
         grad_ratios = st.grad_ratios
@@ -329,7 +334,8 @@ The local energies of each walker are resampled to `resample_length` evenly-spac
 (default: the number of samples of the first walker, see [`resample`](@ref)), and analysed
 with [`blocking_analysis`](@extref Rimu Rimu.StatsTools.blocking_analysis), to which the
 remaining keyword arguments are passed. The errors of the walkers are combined assuming
-they are independent. Returns a [`CombinedBlockingResult`](@ref).
+they are independent. The reported mean is the mean of the local energies weighted by the
+residence times and pooled over all walkers. Returns a [`CombinedBlockingResult`](@ref).
 """
 function local_energy_estimator(
     res::KineticVQMCResult;
