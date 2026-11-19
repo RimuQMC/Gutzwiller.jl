@@ -90,12 +90,14 @@ optimization.
 # Fields
 
 - `fun`: the optimized function.
-- `hyperparameters::NamedTuple`: `τ` and `shift`.
+- `hyperparameters::NamedTuple`: `τ`, `shift`, `diag_shift` and `max_step`.
 - `initial_params`: the initial parameters.
 - `iterations::Int`: number of iterations performed.
 - `converged::Bool`, `reason::String`: whether and why the optimization stopped early.
 - `param`, `value`, `error`, `gradient`, `param_delta`: vectors with the parameters, energy,
   its error, its gradient and the parameter update at each iteration.
+- `step_length`: the length ``\\sqrt{δ𝐩^T S δ𝐩}`` of each update before it was capped at
+  `max_step`.
 """
 struct StochasticReconfigurationResult{T,P<:SVector{<:Any,T},F}
     fun::F
@@ -111,6 +113,7 @@ struct StochasticReconfigurationResult{T,P<:SVector{<:Any,T},F}
     error::Vector{T}
     gradient::Vector{P}
     param_delta::Vector{P}
+    step_length::Vector{T}
 end
 
 function Base.show(io::IO, r::StochasticReconfigurationResult)
@@ -144,6 +147,7 @@ function Base.getindex(rows::StochasticReconfigurationResultRows, i)
         error=r.error[i],
         gradient=r.gradient[i],
         param_delta=r.param_delta[i],
+        step_length=r.step_length[i],
     )
 end
 Base.size(rows::StochasticReconfigurationResultRows) = (length(rows.result.param),)
@@ -151,8 +155,9 @@ Base.size(rows::StochasticReconfigurationResultRows) = (length(rows.result.param
 """
     stochastic_reconfiguration(
         f, p_init;
-        maxiter=100, τ=0.05, shift=1e-3, fix_params=nothing, verbose=true,
-        early_stop=true, param_tol=√eps(T), grad_tol=√eps(T), fkwargs=(;),
+        maxiter=100, τ=0.05, shift=1e-3, diag_shift=1e-3, max_step=0.2,
+        fix_params=nothing, verbose=true, early_stop=true, param_tol=√eps(T),
+        grad_tol=√eps(T), fkwargs=(;),
     )
 
 Minimize the energy of an ansatz with stochastic reconfiguration [1]. In each iteration, the
@@ -162,11 +167,16 @@ parameters are updated by
 δ𝐩 = -τ (S + ε \\, \\mathrm{diag}(S) + ε_0)^{-1} 𝐟, \\quad 𝐟 = ∇E / 2,
 ```
 
-where ``S`` is the metric tensor (see [`val_err_grad_and_metric`](@ref)) and ``ε`` is the
-relative diagonal `shift`, which regularizes ``S`` when it is singular or noisy. A small
-absolute shift ``ε_0`` is added to keep the update finite for parameters that do not affect
-the ansatz. Unlike plain gradient descent, the update measures step sizes by how much the
-wave function changes, which makes it robust to badly scaled or redundant parameters.
+where ``S`` is the metric tensor (see [`val_err_grad_and_metric`](@ref)), ``ε`` is the
+relative diagonal `shift` and ``ε_0`` the absolute `diag_shift`. Both regularize ``S`` when
+it is singular or noisy. Unlike plain gradient descent, the update measures step sizes by
+how much the wave function changes, which makes it robust to badly scaled or redundant
+parameters.
+
+The length of the update measured with the metric, ``\\sqrt{δ𝐩^T S δ𝐩}``, is limited to
+`max_step` by rescaling ``δ𝐩``. This acts as a trust region: far from the optimum, the
+sampled ``S`` can be very small while the force is not, which would otherwise produce
+steps large enough to make the wave function overflow.
 
 `f` can be a [`KineticVQMC`](@ref), which estimates all quantities by sampling, or a
 [`LocalEnergyEvaluator`](@ref), which computes them exactly. Returns a
@@ -176,7 +186,8 @@ wave function changes, which makes it robust to badly scaled or redundant parame
 
 - `f`: the function to optimize. Must support [`val_err_grad_and_metric`](@ref).
 - `p_init`: initial parameters. Alternatively, a [`StochasticReconfigurationResult`](@ref)
-  may be passed to continue a previous optimization from its [`final_params`](@ref).
+  may be passed to continue a previous optimization from its [`final_params`](@ref), with
+  the same hyperparameters unless they are passed as keyword arguments.
 
 # Keyword arguments
 
@@ -184,6 +195,12 @@ wave function changes, which makes it robust to badly scaled or redundant parame
 - `τ=0.05`: step size, similar to an imaginary time step. Larger values converge faster,
   but can become unstable, especially with several parameters.
 - `shift=1e-3`: relative diagonal shift ``ε`` used to regularize ``S``.
+- `diag_shift=1e-3`: absolute diagonal shift ``ε_0`` used to regularize ``S``. It limits
+  the size of updates where ``S`` is very small, e.g. where the wave function is
+  concentrated on a few configurations. Its scale depends on how the parameters enter the
+  ansatz.
+- `max_step=0.2`: maximum length of an update measured with the metric. Set to `Inf` to
+  disable the limit.
 - `fix_params`: a vector or tuple of booleans. If `fix_params[i]` is `true`, the `i`-th
   parameter is kept at its initial value.
 - `verbose=true`: show a progress bar.
@@ -199,7 +216,9 @@ function stochastic_reconfiguration(f, params; kwargs...)
     return stochastic_reconfiguration(f, SVector{length(params)}(float.(params)); kwargs...)
 end
 function stochastic_reconfiguration(f, prev::StochasticReconfigurationResult; kwargs...)
-    return stochastic_reconfiguration(f, final_params(prev); kwargs...)
+    return stochastic_reconfiguration(
+        f, final_params(prev); prev.hyperparameters..., kwargs...
+    )
 end
 
 """
@@ -216,9 +235,13 @@ function final_params(res::StochasticReconfigurationResult)
 end
 function stochastic_reconfiguration(
     f, p_init::P;
-    maxiter=100, τ=0.05, shift=1e-3, fix_params=nothing, verbose=true,
-    early_stop=true, param_tol=√eps(T), grad_tol=√eps(T), fkwargs=(;),
+    maxiter=100, τ=0.05, shift=1e-3, diag_shift=1e-3, max_step=0.2,
+    fix_params=nothing, verbose=true, early_stop=true, param_tol=√eps(T),
+    grad_tol=√eps(T), fkwargs=(;),
 ) where {N,T,P<:SVector{N,T}}
+    if maxiter < 1
+        throw(ArgumentError("`maxiter` must be at least 1"))
+    end
     if isnothing(fix_params)
         free = @SVector fill(true, N)
     else
@@ -233,6 +256,7 @@ function stochastic_reconfiguration(
     errors = T[]
     gradients = P[]
     param_deltas = P[]
+    step_lengths = T[]
     converged = false
     reason = "iterations"
 
@@ -242,15 +266,23 @@ function stochastic_reconfiguration(
         val, err, grad, S = val_err_grad_and_metric(f, p; fkwargs...)
         grad = grad .* free
 
-        S_reg = S + shift * Diagonal(diag(S)) + 1e-10 * I
+        S = S .* free_mask
+        S_reg = S + shift * Diagonal(diag(S)) + diag_shift * I
         S_reg = S_reg .* free_mask + fixed_diag
         δp = -τ * (S_reg \ (grad / 2))
+
+        # Trust region: limit how much the wave function changes in one step.
+        step_length = sqrt(max(dot(δp, S * δp), zero(T)))
+        if step_length > max_step
+            δp *= max_step / step_length
+        end
 
         push!(params, p)
         push!(values, val)
         push!(errors, err)
         push!(gradients, grad)
         push!(param_deltas, δp)
+        push!(step_lengths, step_length)
 
         if !all(isfinite, δp)
             reason = "non-finite parameter update"
@@ -276,7 +308,7 @@ function stochastic_reconfiguration(
     verbose && finish!(prog)
 
     return StochasticReconfigurationResult(
-        f, (; τ, shift), p_init, length(params), converged, reason,
-        params, values, errors, gradients, param_deltas,
+        f, (; τ, shift, diag_shift, max_step), p_init, length(params), converged, reason,
+        params, values, errors, gradients, param_deltas, step_lengths,
     )
 end

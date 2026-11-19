@@ -34,7 +34,7 @@ using Test
         @test S ≈ sum(w .* [(o - mean_O) * (o - mean_O)' for o in O])
 
         # Sampled estimates agree with the exact ones.
-        qmc = KineticVQMC(H, ansatz; samples=1e6)
+        qmc = KineticVQMC(H, ansatz; samples=1e6, walkers=4)
         s_val, s_err, s_grad, s_S = val_err_grad_and_metric(qmc, params)
         @test s_val - 4s_err < val < s_val + 4s_err
         @test s_grad ≈ grad rtol=0.05
@@ -48,13 +48,17 @@ using Test
             # Translation invariance makes most of the 21 parameters redundant, so S is
             # singular.
             (JastrowAnsatz(H), zeros(21)),
+            # Far from the optimum, the wave function is concentrated on one configuration
+            # and S is tiny. Without an absolute diagonal shift, SR jumps across the
+            # optimum into the flat region at negative g.
+            (GutzwillerAnsatz(H), [3.0]),
         )
-            @testset "$(nameof(typeof(ansatz)))" begin
+            @testset "$(nameof(typeof(ansatz))) from $(p0[1])" begin
                 le = LocalEnergyEvaluator(H, ansatz)
                 opt = optimize(
                     NLSolversBase.only_fg!(le), fill(0.3, num_parameters(ansatz)), LBFGS()
                 )
-                res = stochastic_reconfiguration(le, p0; maxiter=300, verbose=false)
+                res = stochastic_reconfiguration(le, p0; maxiter=500, verbose=false)
                 @test res.value[end] ≈ opt.minimum atol=1e-6
                 @test le(res.param[end]) ≈ opt.minimum atol=1e-6
             end
@@ -69,11 +73,33 @@ using Test
         le = LocalEnergyEvaluator(H, ansatz)
         opt = optimize(NLSolversBase.only_fg!(le), [0.3], LBFGS())
 
-        qmc = KineticVQMC(H, ansatz; samples=1e4)
+        qmc = KineticVQMC(H, ansatz; samples=1e4, walkers=4)
         res = stochastic_reconfiguration(qmc, [0.0]; maxiter=100, verbose=false)
         @test le(res.param[end]) - opt.minimum < 1e-3
         @test res.iterations == 100
         @test !res.converged
+
+        # Many redundant parameters.
+        ansatz = JastrowAnsatz(H)
+        le = LocalEnergyEvaluator(H, ansatz)
+        opt = optimize(NLSolversBase.only_fg!(le), fill(0.3, 21), LBFGS())
+        qmc = KineticVQMC(H, ansatz; samples=1e4, walkers=4)
+        res = stochastic_reconfiguration(qmc, zeros(21); maxiter=100, verbose=false)
+        @test le(final_params(res)) - opt.minimum < 2e-3
+    end
+
+    @testset "trust region" begin
+        Random.seed!(17)
+        # At high filling, the first steps from g = 0.2 are far too large unless they are
+        # limited by `max_step`, and the amplitudes overflow.
+        H_fill = HubbardReal1D(BoseFS(15, 15, 15, 15); u=4.0)
+        qmc = KineticVQMC(H_fill, GutzwillerAnsatz(H_fill); samples=1e4, walkers=4)
+        @test_throws Exception stochastic_reconfiguration(
+            qmc, [0.2]; maxiter=20, max_step=Inf, verbose=false
+        )
+        res = stochastic_reconfiguration(qmc, [0.2]; maxiter=100, verbose=false)
+        @test maximum(res.step_length) > 0.2
+        @test 0.04 < final_params(res)[1] < 0.08
     end
 
     @testset "fixed parameters" begin
@@ -92,9 +118,12 @@ using Test
         ansatz = RelativeJastrowAnsatz(H)
         le = LocalEnergyEvaluator(H, ansatz)
 
-        res = stochastic_reconfiguration(le, zeros(3); maxiter=50, verbose=false)
-        res_a = stochastic_reconfiguration(le, zeros(3); maxiter=25, verbose=false)
+        res = stochastic_reconfiguration(le, zeros(3); τ=0.1, maxiter=50, verbose=false)
+        res_a = stochastic_reconfiguration(le, zeros(3); τ=0.1, maxiter=25, verbose=false)
         res_b = stochastic_reconfiguration(le, res_a; maxiter=25, verbose=false)
+        # The continuation keeps the hyperparameters of the previous run.
+        @test res_b.hyperparameters == res_a.hyperparameters
+        @test res_b.hyperparameters.τ == 0.1
         @test [res_a.param; res_b.param] ≈ res.param
         @test final_params(res_b) ≈ final_params(res)
         @test final_params(res) ≈ res.param[end] + res.param_delta[end]
@@ -102,8 +131,11 @@ using Test
         df = DataFrame(res)
         @test size(df, 1) == res.iterations
         @test df.value == res.value
-        @test all(==(0.05), df.τ)
+        @test all(==(0.1), df.τ)
+        @test df.step_length == res.step_length
         @test startswith(sprint(show, res), "StochasticReconfigurationResult")
+
+        @test_throws ArgumentError stochastic_reconfiguration(le, zeros(3); maxiter=0)
     end
 
     @testset "deprecations" begin
